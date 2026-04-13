@@ -265,6 +265,7 @@ def api_report():
 @app.post("/api/compare")
 def api_compare():
     body      = request.get_json(force=True)
+    print("COMPARE CALLED with:", body)
     car1_name = body.get("car1", "").strip()
     car2_name = body.get("car2", "").strip()
     driving   = body.get("driving",  "Mix of city + highway")
@@ -322,7 +323,7 @@ Return ONLY this JSON (no markdown, no code fences):
         client = ai_client
         message = client.messages.create(
             model="claude-haiku-4-5-20251001",
-            max_tokens=2048,
+            max_tokens=1000,
             system="You are CarTruth, an honest Indian car comparison expert. Respond in valid JSON only. No markdown.",
             messages=[{"role": "user", "content": compare_prompt}]
         )
