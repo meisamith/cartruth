@@ -11,6 +11,8 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret")
 
+ai_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"), timeout=60.0)
+
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 # ── DB helpers — PostgreSQL in production, SQLite locally ─────────────────────
@@ -180,7 +182,7 @@ Rules:
 
 
 def generate_report(car_name: str) -> dict:
-    client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    client = ai_client
     message = client.messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=4096,
@@ -317,7 +319,7 @@ Return ONLY this JSON (no markdown, no code fences):
   "car2_best_for": "One line ideal buyer profile for {car2_name}"
 }}"""
 
-        client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        client = ai_client
         message = client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=2048,
@@ -378,7 +380,7 @@ Give an honest verdict. Return ONLY this JSON (no markdown, no code fences):
 }}"""
 
     try:
-        client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        client = ai_client
         message = client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=1024,
@@ -452,7 +454,7 @@ Return ONLY this JSON (no markdown, no code fences):
 }}"""
 
     try:
-        client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        client = ai_client
         msg = client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=2048,
@@ -513,7 +515,7 @@ Give an honest price verdict. Return ONLY this JSON (no markdown, no code fences
 }}"""
 
     try:
-        client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        client = ai_client
         msg = client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=1024,
