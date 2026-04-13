@@ -1,0 +1,643 @@
+{% extends "base.html" %}
+
+{% block title %}CarTruth — India's Honest Car Guide{% endblock %}
+
+{% block extra_styles %}
+
+/* ── Hero ───────────────────────────────────────── */
+.hero {
+  padding: 56px 0 40px;
+  background: #000000;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-glow {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(233,69,96,0.06) 0%, transparent 70%);
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero > *:not(.hero-glow) {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-eyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 16px;
+}
+
+.hero h1 {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1.2;
+  margin-bottom: 14px;
+}
+
+.hero-sub {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+/* ── Search ─────────────────────────────────────── */
+.search-wrap {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.search-input {
+  width: 100%;
+  background: #111111;
+  border: 1px solid #333333;
+  border-radius: 14px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  padding: 16px 64px 16px 18px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+}
+
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.search-input:focus {
+  border-color: #e94560;
+  box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+  outline: none;
+}
+
+.search-submit {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #e94560;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, transform 0.1s;
+  flex-shrink: 0;
+}
+
+.search-submit:hover {
+  background: #d03a52;
+}
+
+.search-submit:active {
+  transform: translateY(-50%) scale(0.91);
+}
+
+.search-submit svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ── Autocomplete dropdown ───────────────────────── */
+.ac-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  background: #111111;
+  border: 1px solid #333333;
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 100;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+}
+
+.ac-dropdown.open {
+  display: block;
+}
+
+.ac-item {
+  padding: 12px 18px;
+  font-size: 14px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.1s;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.4;
+}
+
+.ac-item:not(:last-child) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ac-item:hover,
+.ac-item.focused {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ac-item mark {
+  background: transparent;
+  color: #e94560;
+  font-weight: 700;
+}
+
+.ac-item.fallback {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+/* ── Quick picks ─────────────────────────────────── */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  background: #111111;
+  border: 1px solid #2a2a2a;
+  border-radius: 100px;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.chip:hover {
+  background: #161616;
+  border-color: #e94560;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.chip:active {
+  transform: scale(0.95);
+}
+
+/* ── Feature / tool links ────────────────────────── */
+.compare-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 10px;
+  padding: 18px 20px;
+  background: #111111;
+  border: 1px solid #222222;
+  border-radius: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.compare-link:hover {
+  background: #161616;
+  border-color: #333333;
+  color: #ffffff;
+}
+
+.link-arrow {
+  color: #e94560;
+  font-size: 16px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-left: 8px;
+  transition: transform 0.2s ease;
+}
+
+.compare-link:hover .link-arrow {
+  transform: translateX(3px);
+}
+
+/* ── Stats strip ─────────────────────────────────── */
+.stats {
+  margin-top: 32px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #000000;
+  border: 1px solid #222222;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.stat-cell {
+  background: #000000;
+  padding: 18px 12px;
+  text-align: center;
+}
+
+.stat-cell:not(:last-child) {
+  border-right: 1px solid #222222;
+}
+
+.stat-number {
+  font-size: 22px;
+  font-weight: 700;
+  color: #e94560;
+  line-height: 1;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.3;
+}
+
+/* ── Feature cards ───────────────────────────────── */
+.features {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 48px;
+}
+
+.feature-card {
+  background: #111111;
+  border: 1px solid #222222;
+  border-left: 3px solid transparent;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.2s ease;
+}
+
+.feature-card:hover {
+  background: #181818;
+  border-left-color: #e94560;
+  transform: translateX(3px);
+}
+
+.feature-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.feature-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.feature-icon.red   { background: rgba(233, 69, 96, 0.15); }
+.feature-icon.blue  { background: rgba(99, 179, 237, 0.12); }
+.feature-icon.green { background: rgba(72, 187, 120, 0.12); }
+
+.feature-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #ffffff;
+}
+
+.feature-desc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.5;
+}
+
+{% endblock %}
+
+{% block content %}
+
+<!-- Section 1: Hero -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <span class="hero-eyebrow">For real Indian car buyers</span>
+
+  <h1>Know the <span style="color:#e94560">real cost</span> of owning any car in India</h1>
+
+  <p class="hero-sub">Not the showroom pitch — actual mileage, real service bills, and problems dealers won't tell you about.</p>
+
+  <form class="search-wrap" id="searchForm" onsubmit="handleSearch(event)">
+    <input
+      type="text"
+      id="searchInput"
+      class="search-input"
+      placeholder="Try 'Maruti Swift' or 'Tata Nexon'..."
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+      role="combobox"
+      aria-expanded="false"
+      aria-autocomplete="list"
+      aria-controls="acDropdown"
+    >
+    <button type="submit" class="search-submit" aria-label="Search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+    </button>
+    <div class="ac-dropdown" id="acDropdown" role="listbox"></div>
+  </form>
+
+  <div class="chips">
+    <button class="chip" onclick="goToReport('Maruti Swift')">Maruti Swift</button>
+    <button class="chip" onclick="goToReport('Hyundai Creta')">Hyundai Creta</button>
+    <button class="chip" onclick="goToReport('Tata Nexon')">Tata Nexon</button>
+    <button class="chip" onclick="goToReport('Honda City')">Honda City</button>
+    <button class="chip" onclick="goToReport('Maruti Ertiga')">Maruti Ertiga</button>
+    <button class="chip" onclick="goToReport('Toyota Innova Crysta')">Toyota Innova Crysta</button>
+  </div>
+
+  <a href="/compare"   class="compare-link"><span>Compare two cars</span><span class="link-arrow">&#8594;</span></a>
+  <a href="/wizard"    class="compare-link"><span>Used Car Wizard</span><span class="link-arrow">&#8594;</span></a>
+  <a href="/budget"    class="compare-link"><span>Budget Calculator</span><span class="link-arrow">&#8594;</span></a>
+  <a href="/fairprice" class="compare-link"><span>Fair Price Checker</span><span class="link-arrow">&#8594;</span></a>
+</section>
+
+<!-- Section 2: Stats strip -->
+<div class="stats">
+  <div class="stat-cell">
+    <div class="stat-number stat-num" data-value="50">50+</div>
+    <div class="stat-label">Cars Covered</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-number stat-num" data-value="0" data-prefix="&#8377;">&#8377;0</div>
+    <div class="stat-label">Cost to You</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-number stat-num" data-value="100" data-suffix="%">100%</div>
+    <div class="stat-label">Honest Data</div>
+  </div>
+</div>
+
+<!-- Section 3: Feature cards -->
+<div class="features">
+  <div class="feature-card">
+    <div class="feature-icon red">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#e94560" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 8v4l3 3"/>
+        <path d="M5 12h1M18 12h1M12 5v1M12 18v1"/>
+      </svg>
+    </div>
+    <div>
+      <div class="feature-title">Real mileage</div>
+      <div class="feature-desc">Company claimed vs what owners actually get in city traffic</div>
+    </div>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-icon blue">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#63b3ed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2"/>
+        <path d="M8 21h8M12 17v4"/>
+        <path d="M7 10h2l2 3 2-6 2 3h2"/>
+      </svg>
+    </div>
+    <div>
+      <div class="feature-title">True ownership cost</div>
+      <div class="feature-desc">Insurance, service, tyres — the full 5-year picture before you sign</div>
+    </div>
+  </div>
+
+  <div class="feature-card">
+    <div class="feature-icon green">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#48bb78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    </div>
+    <div>
+      <div class="feature-title">Known problems</div>
+      <div class="feature-desc">Top issues real owners face — with severity and fix costs</div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading overlay — shown while navigating to a report page -->
+<div id="loading-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#0d0d14;z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+  <div style="width:44px;height:44px;border:3px solid rgba(255,255,255,0.1);border-top-color:#e94560;border-radius:50%;animation:reportSpin 0.8s linear infinite;"></div>
+  <p style="color:rgba(255,255,255,0.6);font-size:14px;margin:0;">Generating your CarTruth report...</p>
+  <p style="color:rgba(255,255,255,0.3);font-size:12px;margin:0;">First time takes 10–15 seconds. Cached reports are instant.</p>
+</div>
+<style>@keyframes reportSpin { to { transform: rotate(360deg); } }</style>
+
+<!-- Install banner (fixed bottom, shown by JS when PWA prompt fires) -->
+<div id="install-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:1000;background:#1a1a2e;border-top:1px solid rgba(255,255,255,0.1);padding:16px 20px;align-items:center;justify-content:space-between;gap:12px;">
+  <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+    <span style="font-size:13px;font-weight:700;color:#ffffff;">Car<span style="color:#e94560">Truth</span></span>
+    <span style="font-size:12px;color:rgba(255,255,255,0.5);">Install app for quick access</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+    <button id="install-btn" style="background:#e94560;border:none;border-radius:8px;padding:8px 18px;color:#ffffff;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">Install</button>
+    <button id="install-close" style="background:transparent;border:none;color:rgba(255,255,255,0.4);font-size:18px;cursor:pointer;padding:4px 6px;line-height:1;">&#10005;</button>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function slugify(name) {
+    return name.trim().toLowerCase().replace(/\s+/g, '-');
+  }
+
+  function goToReport(carName) {
+    closeDropdown();
+    document.getElementById('loading-overlay').style.display = 'flex';
+    window.location.href = '/report/' + slugify(carName);
+  }
+
+  function handleSearch(e) {
+    e.preventDefault();
+    // If a suggestion is keyboard-focused, pick it
+    const focused = dropdown.querySelector('.ac-item.focused');
+    if (focused) {
+      focused.click();
+      return;
+    }
+    const val = input.value.trim();
+    if (val) goToReport(val);
+  }
+
+  // ── DOM refs ───────────────────────────────────────────────────────────────
+  const input    = document.getElementById('searchInput');
+  const dropdown = document.getElementById('acDropdown');
+  let   carList  = [];
+  let   focusIdx = -1;
+
+  // ── Load car list once ─────────────────────────────────────────────────────
+  fetch('/api/cars')
+    .then(r => r.json())
+    .then(data => { carList = data; })
+    .catch(() => {});
+
+  // ── Highlight matching segment ─────────────────────────────────────────────
+  function highlight(text, query) {
+    const idx = text.toLowerCase().indexOf(query.toLowerCase());
+    if (idx === -1) return escHtml(text);
+    return (
+      escHtml(text.slice(0, idx)) +
+      '<mark>' + escHtml(text.slice(idx, idx + query.length)) + '</mark>' +
+      escHtml(text.slice(idx + query.length))
+    );
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Render dropdown ────────────────────────────────────────────────────────
+  function renderDropdown(query) {
+    focusIdx = -1;
+    const q = query.trim();
+
+    if (q.length < 2) {
+      closeDropdown();
+      return;
+    }
+
+    const matches = carList
+      .filter(c => c.toLowerCase().includes(q.toLowerCase()))
+      .slice(0, 6);
+
+    dropdown.innerHTML = '';
+
+    if (matches.length === 0) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ac-item fallback';
+      btn.innerHTML = 'Search for &ldquo;' + escHtml(q) + '&rdquo;';
+      btn.addEventListener('mousedown', e => { e.preventDefault(); goToReport(q); });
+      dropdown.appendChild(btn);
+    } else {
+      matches.forEach(car => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ac-item';
+        btn.innerHTML = highlight(car, q);
+        btn.dataset.car = car;
+        btn.addEventListener('mousedown', e => { e.preventDefault(); goToReport(car); });
+        dropdown.appendChild(btn);
+      });
+    }
+
+    dropdown.classList.add('open');
+    input.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeDropdown() {
+    dropdown.classList.remove('open');
+    input.setAttribute('aria-expanded', 'false');
+    focusIdx = -1;
+  }
+
+  // ── Keyboard navigation ────────────────────────────────────────────────────
+  function moveFocus(dir) {
+    const items = dropdown.querySelectorAll('.ac-item');
+    if (!items.length) return;
+
+    items[focusIdx]?.classList.remove('focused');
+    focusIdx = Math.max(0, Math.min(items.length - 1, focusIdx + dir));
+    items[focusIdx].classList.add('focused');
+    items[focusIdx].scrollIntoView({ block: 'nearest' });
+  }
+
+  // ── Input events ───────────────────────────────────────────────────────────
+  input.addEventListener('input', () => renderDropdown(input.value));
+
+  input.addEventListener('focus', () => {
+    if (input.value.trim().length >= 2) renderDropdown(input.value);
+  });
+
+  input.addEventListener('keydown', e => {
+    if (!dropdown.classList.contains('open')) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); moveFocus(1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); moveFocus(-1); }
+    else if (e.key === 'Escape') { closeDropdown(); }
+    // Enter is handled by form onsubmit
+  });
+
+  // ── Close on outside click ─────────────────────────────────────────────────
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#searchForm')) closeDropdown();
+  });
+
+  // ── Stat counter animation ─────────────────────────────────────────────────
+  function animateCount(el, target, duration) {
+    const prefix = el.dataset.prefix || '';
+    const suffix = el.dataset.suffix || '';
+    if (target <= 0) { el.textContent = prefix + '0' + suffix; return; }
+    let start = 0;
+    const step = target / (duration / 16);
+    const timer = setInterval(() => {
+      start = Math.min(start + step, target);
+      if (start >= target) {
+        el.textContent = prefix + target + (suffix || '+');
+        clearInterval(timer);
+        return;
+      }
+      el.textContent = prefix + Math.floor(start) + (suffix || '+');
+    }, 16);
+  }
+  document.querySelectorAll('.stat-num').forEach(el => {
+    animateCount(el, parseInt(el.dataset.value || '0'), 1000);
+  });
+
+  // ── PWA install prompt ─────────────────────────────────────────────────────
+  let deferredPrompt;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('install-banner').style.display = 'flex';
+  });
+
+  document.getElementById('install-btn').addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const result = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      document.getElementById('install-banner').style.display = 'none';
+    }
+  });
+
+  document.getElementById('install-close').addEventListener('click', () => {
+    document.getElementById('install-banner').style.display = 'none';
+  });
+</script>
+{% endblock %}

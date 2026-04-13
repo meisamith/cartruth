@@ -1,0 +1,931 @@
+{% extends "base.html" %}
+
+{% block title %}Compare Cars — CarTruth{% endblock %}
+
+{% block extra_styles %}
+
+/* ── Page header ─────────────────────────────────── */
+.cmp-header {
+  padding: 20px 0 24px;
+}
+
+.back-link {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  margin-bottom: 14px;
+  transition: color 0.15s;
+}
+
+.back-link:hover { color: rgba(255, 255, 255, 0.8); }
+
+.cmp-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.cmp-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* ── Car selector grid ───────────────────────────── */
+.selector-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.selector-box {
+  background: #111111;
+  border: 1px solid #222222;
+  border-radius: 14px;
+  padding: 14px;
+  position: relative;
+}
+
+.selector-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 8px;
+}
+
+.car-input {
+  width: 100%;
+  background: #111111;
+  border: 1px solid #333333;
+  border-radius: 10px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  -webkit-appearance: none;
+}
+
+.car-input::placeholder { color: rgba(255, 255, 255, 0.25); }
+
+.car-input:focus {
+  border-color: #e94560;
+  background: #161616;
+  box-shadow: 0 0 0 3px rgba(233,69,96,0.08);
+  outline: none;
+}
+
+/* ── Autocomplete dropdown (reused pattern) ──────── */
+.ac-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  background: #111111;
+  border: 1px solid #333333;
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 200;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+}
+
+.ac-dropdown.open { display: block; }
+
+.ac-item {
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #ffffff;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.4;
+  transition: background 0.1s;
+}
+
+.ac-item:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,0.05); }
+.ac-item:hover, .ac-item.focused { background: rgba(255, 255, 255, 0.08); }
+.ac-item mark { background: transparent; color: #e94560; font-weight: 700; }
+.ac-item.fallback { color: rgba(255,255,255,0.45); font-style: italic; }
+
+/* ── Compare button ──────────────────────────────── */
+.compare-btn {
+  width: 100%;
+  padding: 14px;
+  background: #e94560;
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  margin-bottom: 28px;
+}
+
+.compare-btn:hover { background: #d03a52; }
+.compare-btn:active { transform: scale(0.98); }
+.compare-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* ── Usage profile ───────────────────────────────── */
+.profile-section {
+  margin-bottom: 28px;
+}
+
+.profile-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.profile-subtitle {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 18px;
+}
+
+.profile-question {
+  margin-bottom: 16px;
+}
+
+.profile-q-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 8px;
+}
+
+.profile-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.profile-chip {
+  padding: 8px 16px;
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.profile-chip:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+}
+
+.profile-chip.selected {
+  background: #e94560;
+  border-color: #e94560;
+  color: #ffffff;
+}
+
+/* ── Results section ─────────────────────────────── */
+#compare-results { display: none; padding-bottom: 48px; }
+#compare-results.visible { display: block; }
+
+/* Loading */
+.loading-state {
+  text-align: center;
+  padding: 40px 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #e94560;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 14px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Winner banner */
+.winner-banner {
+  background: rgba(233, 69, 96, 0.1);
+  border: 1px solid rgba(233, 69, 96, 0.3);
+  border-radius: 16px;
+  padding: 24px 20px 20px;
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.winner-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 6px;
+}
+
+.winner-name {
+  font-size: 22px;
+  font-weight: 800;
+  color: #e94560;
+  margin-bottom: 10px;
+  letter-spacing: -0.5px;
+}
+
+.winner-reason {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.55;
+}
+
+/* Score boxes */
+.score-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.score-box {
+  background: #111111;
+  border: 1px solid #222222;
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+}
+
+.score-car-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.score-number-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+}
+
+.score-big {
+  font-size: 36px;
+  font-weight: 800;
+  color: #e94560;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.score-denom {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 4px;
+}
+
+/* Comparison table */
+.cmp-table {
+  background: #111111;
+  border: 1px solid #222222;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.cmp-table-header {
+  display: grid;
+  grid-template-columns: 100px 1fr 1fr;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cmp-table-header span {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.cmp-table-header span:last-child { text-align: right; }
+
+.cmp-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 1fr;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  align-items: start;
+  gap: 4px;
+}
+
+.cmp-row:last-child { border-bottom: none; }
+.cmp-row:nth-child(odd) { background: rgba(255, 255, 255, 0.02); }
+
+.cmp-metric {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  padding-top: 2px;
+}
+
+.cmp-cell {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.45;
+}
+
+.cmp-cell:last-child { text-align: right; }
+
+.cmp-cell.winner-cell { color: #48bb78; font-weight: 600; }
+.cmp-cell.loser-cell  { color: rgba(255,255,255,0.35); }
+
+.win-tick {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(72, 187, 120, 0.2);
+  position: relative;
+  vertical-align: middle;
+  margin-left: 4px;
+  flex-shrink: 0;
+}
+
+.win-tick::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  width: 4px;
+  height: 7px;
+  border-right: 1.5px solid #48bb78;
+  border-bottom: 1.5px solid #48bb78;
+  transform: rotate(45deg);
+}
+
+/* 5-year cost */
+.cost5-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.cost5-box {
+  background: #111111;
+  border: 1px solid #222222;
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+}
+
+.cost5-box.cheaper {
+  border-color: rgba(72, 187, 120, 0.3);
+  background: rgba(72, 187, 120, 0.06);
+}
+
+.cost5-car {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 6px;
+}
+
+.cost5-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.cost5-box.cheaper .cost5-amount { color: #48bb78; }
+
+.cost5-diff {
+  background: rgba(72, 187, 120, 0.1);
+  border: 1px solid rgba(72, 187, 120, 0.2);
+  border-radius: 10px;
+  padding: 12px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: #48bb78;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+/* Best for */
+.bestfor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.bestfor-box {
+  background: #111111;
+  border: 1px solid #222222;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.bestfor-car {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 6px;
+}
+
+.bestfor-text {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+}
+
+/* Section card shell */
+.result-card {
+  background: #111111;
+  border: 1px solid #222222;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 14px;
+}
+
+.result-card-header {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 16px;
+}
+
+{% endblock %}
+
+{% block content %}
+
+<!-- A) Header -->
+<div class="cmp-header">
+  <a href="/" class="back-link">&#8592; Home</a>
+  <h1 class="cmp-title">Compare Cars</h1>
+  <p class="cmp-subtitle">Find out which car actually wins for your life</p>
+</div>
+
+<!-- B) Car selectors -->
+<div class="selector-grid">
+  <div class="selector-box" id="wrap1">
+    <div class="selector-label">Car 1</div>
+    <input
+      type="text"
+      id="car1Input"
+      class="car-input"
+      placeholder="e.g. Maruti Swift"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+    >
+    <div class="ac-dropdown" id="ac1"></div>
+  </div>
+  <div class="selector-box" id="wrap2">
+    <div class="selector-label">Car 2</div>
+    <input
+      type="text"
+      id="car2Input"
+      class="car-input"
+      placeholder="e.g. Honda City"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+    >
+    <div class="ac-dropdown" id="ac2"></div>
+  </div>
+</div>
+
+<button class="compare-btn" id="compareBtn" onclick="triggerCompare()">
+  Compare &#8594;
+</button>
+
+<!-- C) Usage profile -->
+<div class="profile-section">
+  <div class="profile-title">Tell us about your usage</div>
+  <div class="profile-subtitle">So we can pick a winner for YOU specifically</div>
+
+  <div class="profile-question">
+    <div class="profile-q-label">Where do you drive mostly?</div>
+    <div class="profile-chips" data-group="driving">
+      <button class="profile-chip" data-value="City only">City only</button>
+      <button class="profile-chip" data-value="Mix of city + highway">Mix of city + highway</button>
+      <button class="profile-chip" data-value="Mostly highway">Mostly highway</button>
+    </div>
+  </div>
+
+  <div class="profile-question">
+    <div class="profile-q-label">What matters most to you?</div>
+    <div class="profile-chips" data-group="priority">
+      <button class="profile-chip" data-value="Fuel efficiency">Fuel efficiency</button>
+      <button class="profile-chip" data-value="Low maintenance">Low maintenance</button>
+      <button class="profile-chip" data-value="Comfort &amp; space">Comfort &amp; space</button>
+      <button class="profile-chip" data-value="Performance">Performance</button>
+    </div>
+  </div>
+
+  <div class="profile-question">
+    <div class="profile-q-label">Who drives this car?</div>
+    <div class="profile-chips" data-group="who">
+      <button class="profile-chip" data-value="Just me">Just me</button>
+      <button class="profile-chip" data-value="Family with kids">Family with kids</button>
+      <button class="profile-chip" data-value="Elderly family members">Elderly family members</button>
+    </div>
+  </div>
+</div>
+
+<!-- D) Results (hidden until API returns) -->
+<div id="compare-results"></div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // ── Shared state ───────────────────────────────────────────────────────────
+  let carList = [];
+  let userDriving  = null;
+  let userPriority = null;
+  let userWho      = null;
+
+  // Store which car name was selected per input (could differ from typed slug)
+  let selectedCar1 = null;
+  let selectedCar2 = null;
+
+  // ── Load car list once ─────────────────────────────────────────────────────
+  fetch('/api/cars')
+    .then(r => r.json())
+    .then(data => {
+      carList = data;
+      // Pre-fill from URL params after list is loaded
+      prefillFromURL();
+    })
+    .catch(() => {});
+
+  // ── Autocomplete factory ───────────────────────────────────────────────────
+  function makeAutocomplete(inputEl, dropdownEl, onSelect) {
+    let focusIdx = -1;
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function highlight(text, q) {
+      const idx = text.toLowerCase().indexOf(q.toLowerCase());
+      if (idx === -1) return escHtml(text);
+      return escHtml(text.slice(0, idx))
+        + '<mark>' + escHtml(text.slice(idx, idx + q.length)) + '</mark>'
+        + escHtml(text.slice(idx + q.length));
+    }
+
+    function close() {
+      dropdownEl.classList.remove('open');
+      focusIdx = -1;
+    }
+
+    function render(query) {
+      focusIdx = -1;
+      const q = query.trim();
+      if (q.length < 2) { close(); return; }
+
+      const matches = carList
+        .filter(c => c.toLowerCase().includes(q.toLowerCase()))
+        .slice(0, 6);
+
+      dropdownEl.innerHTML = '';
+
+      if (matches.length === 0) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ac-item fallback';
+        btn.innerHTML = 'Search for &ldquo;' + escHtml(q) + '&rdquo;';
+        btn.addEventListener('mousedown', e => { e.preventDefault(); onSelect(q); close(); });
+        dropdownEl.appendChild(btn);
+      } else {
+        matches.forEach(car => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'ac-item';
+          btn.innerHTML = highlight(car, q);
+          btn.dataset.car = car;
+          btn.addEventListener('mousedown', e => {
+            e.preventDefault();
+            inputEl.value = car;
+            onSelect(car);
+            close();
+          });
+          dropdownEl.appendChild(btn);
+        });
+      }
+
+      dropdownEl.classList.add('open');
+    }
+
+    function moveFocus(dir) {
+      const items = dropdownEl.querySelectorAll('.ac-item');
+      if (!items.length) return;
+      items[focusIdx]?.classList.remove('focused');
+      focusIdx = Math.max(0, Math.min(items.length - 1, focusIdx + dir));
+      items[focusIdx].classList.add('focused');
+    }
+
+    inputEl.addEventListener('input', () => {
+      onSelect(null); // clear selection on new typing
+      render(inputEl.value);
+    });
+
+    inputEl.addEventListener('focus', () => {
+      if (inputEl.value.trim().length >= 2) render(inputEl.value);
+    });
+
+    inputEl.addEventListener('keydown', e => {
+      if (!dropdownEl.classList.contains('open')) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); moveFocus(1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); moveFocus(-1); }
+      else if (e.key === 'Escape') { close(); }
+      else if (e.key === 'Enter') {
+        e.preventDefault();
+        const focused = dropdownEl.querySelector('.ac-item.focused');
+        if (focused) {
+          const car = focused.dataset.car || inputEl.value.trim();
+          inputEl.value = focused.dataset.car || inputEl.value.trim();
+          onSelect(car);
+          close();
+        }
+      }
+    });
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#wrap1') && !e.target.closest('#wrap2')) close();
+    });
+
+    return { close };
+  }
+
+  // Wire up both inputs
+  makeAutocomplete(
+    document.getElementById('car1Input'),
+    document.getElementById('ac1'),
+    val => { selectedCar1 = val; }
+  );
+  makeAutocomplete(
+    document.getElementById('car2Input'),
+    document.getElementById('ac2'),
+    val => { selectedCar2 = val; }
+  );
+
+  // ── Profile chips ──────────────────────────────────────────────────────────
+  document.querySelectorAll('.profile-chips').forEach(group => {
+    group.querySelectorAll('.profile-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        group.querySelectorAll('.profile-chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        const g = group.dataset.group;
+        if (g === 'driving')  userDriving  = chip.dataset.value;
+        if (g === 'priority') userPriority = chip.dataset.value;
+        if (g === 'who')      userWho      = chip.dataset.value;
+      });
+    });
+  });
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function slugify(name) {
+    return name.trim().toLowerCase().replace(/\s+/g, '-');
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── URL pre-fill ───────────────────────────────────────────────────────────
+  function prefillFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const c1 = params.get('car1');
+    const c2 = params.get('car2');
+    if (!c1 || !c2) return;
+
+    const toDisplay = slug => slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+    const car1Name = carList.find(c => slugify(c) === c1) || toDisplay(c1);
+    const car2Name = carList.find(c => slugify(c) === c2) || toDisplay(c2);
+
+    document.getElementById('car1Input').value = car1Name;
+    document.getElementById('car2Input').value = car2Name;
+    selectedCar1 = car1Name;
+    selectedCar2 = car2Name;
+
+    triggerCompare();
+  }
+
+  // ── Compare trigger ────────────────────────────────────────────────────────
+  function triggerCompare() {
+    const c1 = selectedCar1 || document.getElementById('car1Input').value.trim();
+    const c2 = selectedCar2 || document.getElementById('car2Input').value.trim();
+
+    if (!c1 || !c2) {
+      alert('Please enter both cars to compare.');
+      return;
+    }
+
+    // Update URL without reload
+    const newURL = '/compare?car1=' + slugify(c1) + '&car2=' + slugify(c2);
+    history.pushState({}, '', newURL);
+
+    // Show loading
+    const resultsEl = document.getElementById('compare-results');
+    resultsEl.className = 'visible';
+    resultsEl.innerHTML = `
+      <div class="loading-state">
+        <div class="spinner"></div>
+        Comparing ${escHtml(c1)} vs ${escHtml(c2)}…
+      </div>`;
+    resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Disable button
+    const btn = document.getElementById('compareBtn');
+    btn.disabled = true;
+    btn.textContent = 'Comparing…';
+
+    fetch('/api/compare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        car1:     c1,
+        car2:     c2,
+        driving:  userDriving  || 'Mix of city + highway',
+        priority: userPriority || 'Fuel efficiency',
+        who:      userWho      || 'Just me',
+      }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) throw new Error(data.error);
+      renderResults(data, c1, c2);
+    })
+    .catch(err => {
+      resultsEl.innerHTML = `<div class="loading-state" style="color:#e94560;">
+        Error: ${escHtml(err.message)}. Please try again.
+      </div>`;
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.innerHTML = 'Compare &#8594;';
+    });
+  }
+
+  // ── Render results ─────────────────────────────────────────────────────────
+  function renderResults(d, car1Name, car2Name) {
+    const c = d.comparison || {};
+    const metrics = [
+      { key: 'mileage',         label: 'Mileage' },
+      { key: 'service_cost',    label: 'Service' },
+      { key: 'insurance',       label: 'Insurance' },
+      { key: 'common_problems', label: 'Problems' },
+      { key: 'comfort',         label: 'Comfort' },
+      { key: 'resale_value',    label: 'Resale' },
+    ];
+
+    // Build comparison table rows
+    const tableRows = metrics.map((m, i) => {
+      const row = c[m.key] || {};
+      const w   = (row.winner || '').toLowerCase();
+      const c1wins = w.includes(car1Name.toLowerCase().split(' ')[0]) || w.includes('car 1') || w === '1';
+      const c2wins = w.includes(car2Name.toLowerCase().split(' ')[0]) || w.includes('car 2') || w === '2';
+
+      const tick = '<span class="win-tick"></span>';
+      const c1cell = `<div class="cmp-cell${c1wins ? ' winner-cell' : (c2wins ? ' loser-cell' : '')}">${escHtml(row.car1 || '—')}${c1wins ? tick : ''}</div>`;
+      const c2cell = `<div class="cmp-cell${c2wins ? ' winner-cell' : (c1wins ? ' loser-cell' : '')}" style="text-align:right">${c2wins ? tick : ''}${escHtml(row.car2 || '—')}</div>`;
+
+      return `<div class="cmp-row">
+        <div class="cmp-metric">${escHtml(m.label)}</div>
+        ${c1cell}${c2cell}
+      </div>`;
+    }).join('');
+
+    // Determine cheaper 5-year cost
+    const cost1 = d.five_year_cost_car1 || '—';
+    const cost2 = d.five_year_cost_car2 || '—';
+    // Simple heuristic: compare numeric portion if possible
+    const extractNum = s => parseFloat((s || '0').replace(/[^0-9.]/g, '')) || 0;
+    const n1 = extractNum(cost1), n2 = extractNum(cost2);
+    const c1cheaper = n1 > 0 && n1 <= n2;
+    const c2cheaper = n2 > 0 && n2 < n1;
+
+    const html = `
+      <!-- Winner banner -->
+      <div class="winner-banner">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#e94560" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:10px;">
+          <path d="M6 9H4a2 2 0 01-2-2V5a2 2 0 012-2h2M18 9h2a2 2 0 002-2V5a2 2 0 00-2-2h-2M8 21h8M12 17v4M3 9a9 9 0 0018 0"/>
+        </svg>
+        <div class="winner-label">CarTruth Pick for You</div>
+        <div class="winner-name">${escHtml(d.winner || '—')}</div>
+        <div class="winner-reason">${escHtml(d.winner_reason || '')}</div>
+      </div>
+
+      <!-- Scores -->
+      <div class="score-grid">
+        <div class="score-box">
+          <div class="score-car-name">${escHtml(car1Name)}</div>
+          <div class="score-number-row">
+            <span class="score-big">${escHtml(String(d.score_car1 ?? '—'))}</span>
+            <span class="score-denom">/10</span>
+          </div>
+        </div>
+        <div class="score-box">
+          <div class="score-car-name">${escHtml(car2Name)}</div>
+          <div class="score-number-row">
+            <span class="score-big">${escHtml(String(d.score_car2 ?? '—'))}</span>
+            <span class="score-denom">/10</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparison table -->
+      <div class="result-card" style="padding:0">
+        <div class="cmp-table-header" style="padding:12px 14px 10px">
+          <span>Metric</span>
+          <span>${escHtml(car1Name)}</span>
+          <span style="text-align:right">${escHtml(car2Name)}</span>
+        </div>
+        ${tableRows}
+      </div>
+
+      <!-- 5-year cost -->
+      <div class="result-card">
+        <div class="result-card-header">5-Year Ownership Cost</div>
+        <div class="cost5-grid">
+          <div class="cost5-box${c1cheaper ? ' cheaper' : ''}">
+            <div class="cost5-car">${escHtml(car1Name)}</div>
+            <div class="cost5-amount">${escHtml(cost1)}</div>
+          </div>
+          <div class="cost5-box${c2cheaper ? ' cheaper' : ''}">
+            <div class="cost5-car">${escHtml(car2Name)}</div>
+            <div class="cost5-amount">${escHtml(cost2)}</div>
+          </div>
+        </div>
+        ${d.five_year_cost_difference
+          ? `<div class="cost5-diff">${escHtml(d.five_year_cost_difference)}</div>`
+          : ''}
+      </div>
+
+      <!-- Best for -->
+      <div class="result-card">
+        <div class="result-card-header">Best For</div>
+        <div class="bestfor-grid">
+          <div class="bestfor-box">
+            <div class="bestfor-car">${escHtml(car1Name)}</div>
+            <div class="bestfor-text">${escHtml(d.car1_best_for || '—')}</div>
+          </div>
+          <div class="bestfor-box">
+            <div class="bestfor-car">${escHtml(car2Name)}</div>
+            <div class="bestfor-text">${escHtml(d.car2_best_for || '—')}</div>
+          </div>
+        </div>
+      </div>`;
+
+    const shareBtn = `
+      <button onclick="shareComparison()" style="width:100%;margin-top:4px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:12px;color:rgba(255,255,255,0.6);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:0.3px;">
+        Share this comparison
+      </button>`;
+
+    const resultsEl = document.getElementById('compare-results');
+    resultsEl.innerHTML = html + shareBtn;
+    resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function shareComparison() {
+    const url = window.location.href;
+    if (navigator.share) {
+      navigator.share({ title: document.title, url });
+    } else {
+      navigator.clipboard.writeText(url)
+        .then(() => alert('Link copied!'))
+        .catch(() => alert('Copy the URL from your browser'));
+    }
+  }
+</script>
+{% endblock %}

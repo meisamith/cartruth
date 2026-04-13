@@ -1,0 +1,902 @@
+{% extends "base.html" %}
+
+{% block title %}{{ report.car_name | default('Car Report') }} — CarTruth{% endblock %}
+
+{% block extra_styles %}
+
+/* ── Shared card ─────────────────────────────────── */
+.rcard {
+  background: #111111;
+  border: 1px solid #222222;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.rcard::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #e94560, transparent);
+  border-radius: 2px 2px 0 0;
+}
+
+.card-header {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 16px;
+}
+
+/* ── Top bar ─────────────────────────────────────── */
+.top-bar {
+  padding: 20px 0 6px;
+}
+
+.back-link {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  margin-bottom: 14px;
+  transition: color 0.15s;
+}
+
+.back-link:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.car-name {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.15;
+  margin-bottom: 10px;
+}
+
+.badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.pill-badge {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 100px;
+  padding: 4px 12px;
+  white-space: nowrap;
+}
+
+.cache-status {
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 2px;
+  margin-bottom: 20px;
+}
+
+.cache-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+
+/* ── Mileage card ────────────────────────────────── */
+.mileage-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.mileage-cell {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+}
+
+.mileage-cell-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 6px;
+}
+
+.mileage-claimed-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.35);
+  text-decoration: line-through;
+}
+
+.mileage-real-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.mileage-diff {
+  background: rgba(233, 69, 96, 0.1);
+  border: 1px solid rgba(233, 69, 96, 0.18);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #e94560;
+  text-align: center;
+}
+
+/* ── Cost card ───────────────────────────────────── */
+.cost-list {
+  list-style: none;
+}
+
+.cost-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 0;
+  border-bottom: 1px dotted rgba(255, 255, 255, 0.06);
+  gap: 8px;
+}
+
+.cost-row:last-child {
+  border-bottom: none;
+}
+
+.cost-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.65);
+  flex: 1;
+}
+
+.cost-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.cost-row.savings .cost-label {
+  color: #48bb78;
+  font-weight: 600;
+}
+
+.cost-row.savings .cost-value {
+  color: #48bb78;
+}
+
+.savings-prefix {
+  display: inline-block;
+  background: rgba(72, 187, 120, 0.15);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #48bb78;
+  margin-right: 6px;
+  letter-spacing: 0.3px;
+}
+
+/* ── Problems card ───────────────────────────────── */
+.problem-item {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 8px;
+}
+
+.problem-item:last-child {
+  margin-bottom: 0;
+}
+
+.problem-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.problem-name {
+  font-size: 14px;
+  font-weight: 700;
+  flex: 1;
+}
+
+.severity-badge {
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 100px;
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+
+.severity-high   { background: #e94560; color: #ffffff; }
+.severity-medium { background: #fbbf24; color: #0d0d14; }
+.severity-low    { background: #48bb78; color: #0d0d14; }
+
+.problem-desc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.fix-cost-pill {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 100px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ── Before you buy card ─────────────────────────── */
+.tab-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tab-btn.active {
+  background: #e94560;
+  color: #ffffff;
+}
+
+.tab-btn.inactive {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.tab-btn.inactive:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+.checklist {
+  list-style: none;
+}
+
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.45;
+}
+
+.checklist li:last-child {
+  border-bottom: none;
+}
+
+.check-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #48bb78;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.check-icon::after {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 9px;
+  border-right: 2px solid #48bb78;
+  border-bottom: 2px solid #48bb78;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+
+/* ── Emergency card ──────────────────────────────── */
+.emergency-card {
+  background: rgba(233, 69, 96, 0.08);
+  border: 1px solid rgba(233, 69, 96, 0.15);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 14px;
+}
+
+.emergency-card .card-header {
+  color: #e94560;
+}
+
+.accordion-item {
+  border-bottom: 1px solid rgba(233, 69, 96, 0.12);
+}
+
+.accordion-item:last-child {
+  border-bottom: none;
+}
+
+.accordion-trigger {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  text-align: left;
+  gap: 8px;
+  transition: color 0.15s;
+}
+
+.accordion-trigger:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.accordion-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
+  font-style: normal;
+}
+
+.accordion-trigger[aria-expanded="true"] .accordion-icon {
+  border-color: #e94560;
+  color: #e94560;
+}
+
+.accordion-body {
+  display: none;
+  padding: 0 0 14px;
+}
+
+.accordion-body.open {
+  display: block;
+}
+
+.accordion-steps {
+  list-style: none;
+  counter-reset: step;
+}
+
+.accordion-steps li {
+  counter-increment: step;
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.accordion-steps li:last-child {
+  margin-bottom: 0;
+}
+
+.accordion-steps li::before {
+  content: counter(step);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(233, 69, 96, 0.2);
+  color: #e94560;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── Verdict card ────────────────────────────────── */
+.verdict-card {
+  background: rgba(233, 69, 96, 0.05);
+  border: 1px solid rgba(233, 69, 96, 0.3);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 14px;
+}
+
+.verdict-rating-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.verdict-number {
+  font-size: 72px;
+  font-weight: 800;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #e94560;
+  line-height: 1;
+  letter-spacing: -3px;
+}
+
+.verdict-denom {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 6px;
+}
+
+.verdict-sentence {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+
+.verdict-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.verdict-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.verdict-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.verdict-icon.buy    { background: rgba(72, 187, 120, 0.2); }
+.verdict-icon.avoid  { background: rgba(233, 69, 96, 0.2); }
+.verdict-icon.plus   { background: rgba(251, 191, 36, 0.2); }
+.verdict-icon.minus  { background: rgba(255, 255, 255, 0.08); }
+
+.verdict-icon.buy::after {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 9px;
+  border-right: 2px solid #48bb78;
+  border-bottom: 2px solid #48bb78;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+
+.verdict-icon.avoid::after {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 2px;
+  background: #e94560;
+  border-radius: 2px;
+}
+
+.verdict-icon.plus::after {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  background: #fbbf24;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+
+.verdict-icon.minus::after {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+}
+
+.verdict-row-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-right: 4px;
+}
+
+.verdict-row.buy    .verdict-row-label { color: #48bb78; }
+.verdict-row.avoid  .verdict-row-label { color: #e94560; }
+.verdict-row.plus   .verdict-row-label { color: #fbbf24; }
+.verdict-row.minus  .verdict-row-label { color: rgba(255, 255, 255, 0.4); }
+
+.verdict-row-text {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* ── Bottom ──────────────────────────────────────── */
+.bottom-bar {
+  padding: 6px 0 40px;
+  text-align: center;
+}
+
+.footer-note {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+  line-height: 1.6;
+  margin-top: 12px;
+}
+
+{% endblock %}
+
+{% block content %}
+
+{% set r = report | default({}) %}
+
+<!-- 1. Top bar -->
+<div class="top-bar">
+  <a href="/" class="back-link">&#8592; Search another car</a>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;">
+    <h1 class="car-name" style="margin-bottom:0;">{{ r.car_name | default('Unknown Car') }}</h1>
+    <button onclick="shareReport()" style="flex-shrink:0;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:6px 14px;color:rgba(255,255,255,0.7);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;margin-top:4px;">Share</button>
+  </div>
+  <div class="badge-row">
+    {% if r.segment %}<span class="pill-badge">{{ r.segment }}</span>{% endif %}
+    {% if r.price_range %}<span class="pill-badge">{{ r.price_range }}</span>{% endif %}
+  </div>
+  <div class="cache-status">
+    {% if r.from_cache %}
+      <span class="cache-dot" style="background:#48bb78;"></span>
+      <span style="color:#48bb78;">Data cached &#10003;</span>
+    {% else %}
+      <span class="cache-dot" style="background:rgba(255,255,255,0.3);"></span>
+      <span style="color:rgba(255,255,255,0.4);">Freshly generated</span>
+    {% endif %}
+  </div>
+</div>
+
+<!-- 2. Mileage card -->
+{% if r.mileage %}
+<div class="rcard">
+  <div class="card-header">Real Mileage</div>
+  <div class="mileage-row">
+    <div class="mileage-cell">
+      <div class="mileage-cell-label">Claimed</div>
+      <div class="mileage-claimed-value">{{ r.mileage.claimed | default('—') }}</div>
+    </div>
+    <div class="mileage-cell">
+      <div class="mileage-cell-label">Real World</div>
+      <div class="mileage-real-value">{{ r.mileage.real_world | default('—') }}</div>
+    </div>
+  </div>
+  <div style="margin-top:14px;">
+    <div style="height:6px;background:rgba(255,255,255,0.08);border-radius:100px;overflow:hidden;">
+      <div style="height:100%;width:70%;background:linear-gradient(90deg,#e94560,#ff6b6b);border-radius:100px;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:6px;">
+      <span style="font-size:11px;color:rgba(255,255,255,0.35);">Real world</span>
+      <span style="font-size:11px;color:rgba(255,255,255,0.35);">Claimed</span>
+    </div>
+  </div>
+  {% if r.mileage.difference %}
+  <div class="mileage-diff" style="margin-top:12px;">You get {{ r.mileage.difference }} less than claimed</div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- 3. True cost card -->
+{% if r.ownership_cost %}
+<div class="rcard">
+  <div class="card-header">What Owning This Car Actually Costs</div>
+  <ul class="cost-list">
+    {% if r.ownership_cost.insurance_year1 %}
+    <li class="cost-row">
+      <span class="cost-label">Insurance (year 1)</span>
+      <span class="cost-value">{{ r.ownership_cost.insurance_year1 }}</span>
+    </li>
+    {% endif %}
+    {% if r.ownership_cost.service_10k %}
+    <li class="cost-row">
+      <span class="cost-label">Service @ 10,000 km</span>
+      <span class="cost-value">{{ r.ownership_cost.service_10k }}</span>
+    </li>
+    {% endif %}
+    {% if r.ownership_cost.service_20k %}
+    <li class="cost-row">
+      <span class="cost-label">Service @ 20,000 km</span>
+      <span class="cost-value">{{ r.ownership_cost.service_20k }}</span>
+    </li>
+    {% endif %}
+    {% if r.ownership_cost.service_40k %}
+    <li class="cost-row">
+      <span class="cost-label">Service @ 40,000 km</span>
+      <span class="cost-value">{{ r.ownership_cost.service_40k }}</span>
+    </li>
+    {% endif %}
+    {% if r.ownership_cost.tyre_replacement %}
+    <li class="cost-row">
+      <span class="cost-label">Tyre replacement (set of 4)</span>
+      <span class="cost-value">{{ r.ownership_cost.tyre_replacement }}</span>
+    </li>
+    {% endif %}
+    {% if r.ownership_cost.annual_maintenance %}
+    <li class="cost-row">
+      <span class="cost-label">Annual maintenance estimate</span>
+      <span class="cost-value">{{ r.ownership_cost.annual_maintenance }}</span>
+    </li>
+    {% endif %}
+    {% if r.ownership_cost.local_mechanic_savings %}
+    <li class="cost-row savings">
+      <span class="cost-label">
+        <span class="savings-prefix">SAVE</span>Local mechanic savings
+      </span>
+      <span class="cost-value">{{ r.ownership_cost.local_mechanic_savings }}</span>
+    </li>
+    {% endif %}
+  </ul>
+</div>
+{% endif %}
+
+<!-- 4. Common problems card -->
+{% if r.common_problems %}
+<div class="rcard">
+  <div class="card-header">5 Problems Real Owners Face</div>
+  {% for problem in r.common_problems %}
+  <div class="problem-item">
+    <div class="problem-top">
+      <div class="problem-name">{{ problem.name | default('Unknown issue') }}</div>
+      {% set sev = problem.severity | default('') | lower %}
+      <span class="severity-badge severity-{{ sev if sev in ['high','medium','low'] else 'medium' }}">
+        {{ problem.severity | default('Medium') }}
+      </span>
+    </div>
+    <p class="problem-desc">{{ problem.description | default('') }}</p>
+    {% if problem.fix_cost %}
+    <span class="fix-cost-pill">Fix: {{ problem.fix_cost }}</span>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- 5. Before you buy card -->
+{% if r.checklist %}
+<div class="rcard">
+  <div class="card-header">Before You Buy</div>
+  <div class="tab-row">
+    <button class="tab-btn active" id="tab-new" onclick="switchTab('new')">New Car</button>
+    <button class="tab-btn inactive" id="tab-used" onclick="switchTab('used')">Used Car</button>
+  </div>
+  <div class="tab-panel active" id="panel-new">
+    <ul class="checklist">
+      {% for item in r.checklist.new_car | default([]) %}
+      <li>
+        <span class="check-icon"></span>
+        <span>{{ item }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="tab-panel" id="panel-used">
+    <ul class="checklist">
+      {% for item in r.checklist.used_car | default([]) %}
+      <li>
+        <span class="check-icon"></span>
+        <span>{{ item }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}
+
+<!-- 6. Emergency guide card -->
+{% if r.emergency %}
+<div class="emergency-card">
+  <div class="card-header">Emergency Guide</div>
+
+  <div class="accordion-item">
+    <button class="accordion-trigger" aria-expanded="false" onclick="toggleAccordion(this)">
+      Battery Dead
+      <span class="accordion-icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <ol class="accordion-steps">
+        {% for step in r.emergency.battery_dead | default([]) %}
+        <li>{{ step }}</li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+
+  <div class="accordion-item">
+    <button class="accordion-trigger" aria-expanded="false" onclick="toggleAccordion(this)">
+      Flat Tyre
+      <span class="accordion-icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <ol class="accordion-steps">
+        {% for step in r.emergency.flat_tyre | default([]) %}
+        <li>{{ step }}</li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+
+  <div class="accordion-item">
+    <button class="accordion-trigger" aria-expanded="false" onclick="toggleAccordion(this)">
+      Breakdown
+      <span class="accordion-icon">+</span>
+    </button>
+    <div class="accordion-body">
+      <ol class="accordion-steps">
+        {% for step in r.emergency.breakdown | default([]) %}
+        <li>{{ step }}</li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- 7. Honest verdict card -->
+{% if r.verdict %}
+<div class="verdict-card">
+  <div class="card-header" style="color:#e94560;">CarTruth Verdict</div>
+  <div class="verdict-rating-row">
+    <span class="verdict-number">{{ r.verdict.cartruth_rating | default('—') | string | replace('/10', '') | trim }}</span>
+    <span class="verdict-denom">/10</span>
+  </div>
+  {% if r.verdict.honest_sentence %}
+  <p class="verdict-sentence">{{ r.verdict.honest_sentence }}</p>
+  {% endif %}
+  <ul class="verdict-list">
+    {% if r.verdict.who_should_buy %}
+    <li class="verdict-row buy">
+      <span class="verdict-icon buy"></span>
+      <span><span class="verdict-row-label">Buy if</span><span class="verdict-row-text">{{ r.verdict.who_should_buy }}</span></span>
+    </li>
+    {% endif %}
+    {% if r.verdict.who_should_avoid %}
+    <li class="verdict-row avoid">
+      <span class="verdict-icon avoid"></span>
+      <span><span class="verdict-row-label">Avoid if</span><span class="verdict-row-text">{{ r.verdict.who_should_avoid }}</span></span>
+    </li>
+    {% endif %}
+    {% if r.verdict.hidden_strengths %}
+    <li class="verdict-row plus">
+      <span class="verdict-icon plus"></span>
+      <span><span class="verdict-row-label">Strength</span><span class="verdict-row-text">{{ r.verdict.hidden_strengths }}</span></span>
+    </li>
+    {% endif %}
+    {% if r.verdict.hidden_weaknesses %}
+    <li class="verdict-row minus">
+      <span class="verdict-icon minus"></span>
+      <span><span class="verdict-row-label">Weakness</span><span class="verdict-row-text">{{ r.verdict.hidden_weaknesses }}</span></span>
+    </li>
+    {% endif %}
+  </ul>
+</div>
+{% endif %}
+
+<!-- 8. Bottom -->
+<div class="bottom-bar">
+  <a href="/" class="back-link">&#8592; Search another car</a>
+  <p class="footer-note">Data generated by AI. Always verify with a certified mechanic before purchasing.</p>
+</div>
+
+<!-- Toast notification -->
+<div id="toast" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#111111;border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 20px;color:white;font-family:'Inter',sans-serif;font-size:13px;z-index:9999;white-space:nowrap;">Link copied!</div>
+
+<!-- Back to top button -->
+<button id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" style="display:none;position:fixed;bottom:24px;right:20px;width:44px;height:44px;background:#e94560;border:none;border-radius:50%;cursor:pointer;align-items:center;justify-content:center;z-index:999;">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M18 15l-6-6-6 6"/></svg>
+</button>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // ── Share & Toast ──────────────────────────────────────────────────────────
+  function shareReport() {
+    if (navigator.share) {
+      navigator.share({ title: document.title, url: window.location.href });
+    } else {
+      navigator.clipboard.writeText(window.location.href)
+        .then(() => showToast('Link copied!'))
+        .catch(() => showToast('Copy the URL from your browser'));
+    }
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2500);
+  }
+
+  // ── Back to top ────────────────────────────────────────────────────────────
+  window.addEventListener('scroll', () => {
+    const btn = document.getElementById('back-top');
+    btn.style.display = window.scrollY > 300 ? 'flex' : 'none';
+  });
+
+  // ── Tabs & Accordion ───────────────────────────────────────────────────────
+  function switchTab(tab) {
+    const tabs = ['new', 'used'];
+    tabs.forEach(t => {
+      document.getElementById('tab-' + t).className = 'tab-btn ' + (t === tab ? 'active' : 'inactive');
+      document.getElementById('panel-' + t).className = 'tab-panel ' + (t === tab ? 'active' : '');
+    });
+  }
+
+  function toggleAccordion(btn) {
+    const isOpen = btn.getAttribute('aria-expanded') === 'true';
+    const body = btn.nextElementSibling;
+    const icon = btn.querySelector('.accordion-icon');
+
+    if (isOpen) {
+      btn.setAttribute('aria-expanded', 'false');
+      body.classList.remove('open');
+      icon.textContent = '+';
+    } else {
+      btn.setAttribute('aria-expanded', 'true');
+      body.classList.add('open');
+      icon.textContent = '\u2212';
+    }
+  }
+</script>
+{% endblock %}

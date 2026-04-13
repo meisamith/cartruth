@@ -1,0 +1,611 @@
+{% extends "base.html" %}
+
+{% block title %}Fair Price Checker — CarTruth{% endblock %}
+
+{% block extra_styles %}
+
+.back-link {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.5);
+  text-decoration: none;
+  margin-bottom: 14px;
+  transition: color 0.15s;
+}
+.back-link:hover { color: rgba(255,255,255,0.8); }
+
+.pg-header   { padding: 20px 0 24px; }
+.pg-title    { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+.pg-subtitle { font-size: 14px; color: rgba(255,255,255,0.45); }
+
+/* ── Form ─────────────────────────────────────────── */
+.field-block { margin-bottom: 20px; }
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 8px;
+}
+
+.field-input {
+  width: 100%;
+  background: #111111;
+  border: 1px solid #333333;
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  padding: 14px 16px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  -webkit-appearance: none;
+}
+.field-input::placeholder { color: rgba(255,255,255,0.28); }
+.field-input:focus {
+  border-color: #e94560;
+  background: #161616;
+  box-shadow: 0 0 0 3px rgba(233,69,96,0.08);
+  outline: none;
+}
+
+.field-select:focus {
+  border-color: #e94560;
+  background: #161616;
+  box-shadow: 0 0 0 3px rgba(233,69,96,0.08);
+  outline: none;
+}
+
+/* ── Autocomplete ─────────────────────────────────── */
+.field-wrap {
+  position: relative;
+}
+
+.ac-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  width: 100%;
+  background: #111111;
+  border: 1px solid #333333;
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 200;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+}
+.ac-dropdown.open { display: block; }
+
+.ac-item {
+  padding: 11px 16px;
+  font-size: 14px;
+  color: #ffffff;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.4;
+  transition: background 0.1s;
+}
+.ac-item:not(:last-child) { border-bottom: 1px solid #1e1e1e; }
+.ac-item:hover, .ac-item.focused { background: #161616; }
+.ac-item mark { background: transparent; color: #e94560; font-weight: 700; }
+.ac-item.fallback { color: rgba(255,255,255,0.4); font-style: italic; }
+
+/* ── Location selects ─────────────────────────────── */
+.select-wrapper {
+  position: relative;
+}
+.select-wrapper::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid rgba(255,255,255,0.4);
+}
+.field-select {
+  width: 100%;
+  background: #111111;
+  border: 1px solid #333333;
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  padding: 14px 40px 14px 16px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.field-select:focus {
+  border-color: #e94560;
+  background: #161616;
+}
+.field-select option {
+  background: #111111;
+  color: #ffffff;
+}
+.field-select:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Chips ────────────────────────────────────────── */
+.chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.sel-chip {
+  padding: 8px 16px;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent;
+  color: rgba(255,255,255,0.7);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.sel-chip:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.28); color: #fff; }
+.sel-chip.selected { background: #e94560; border-color: #e94560; color: #ffffff; }
+
+/* ── CTA button ───────────────────────────────────── */
+.cta-btn {
+  width: 100%;
+  padding: 16px;
+  background: #e94560;
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  margin-bottom: 32px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.cta-btn:hover {
+  background: #d03a52;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(233,69,96,0.3);
+}
+.cta-btn:active  { transform: scale(0.98); }
+.cta-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+.cta-btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+  transition: left 0.4s ease;
+}
+.cta-btn:hover::after { left: 150%; }
+
+/* ── Results ──────────────────────────────────────── */
+#fairprice-results { display: none; padding-bottom: 48px; }
+
+.loading-state {
+  text-align: center;
+  padding: 48px 0;
+  color: rgba(255,255,255,0.5);
+  font-size: 14px;
+}
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #e94560;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 14px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Verdict badge */
+.verdict-badge {
+  border-radius: 16px;
+  padding: 28px 20px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.verdict-badge.great  { background: rgba(72,187,120,0.15);  border: 1px solid rgba(72,187,120,0.4); }
+.verdict-badge.good   { background: rgba(72,187,120,0.08);  border: 1px solid rgba(72,187,120,0.25); }
+.verdict-badge.fair   { background: rgba(251,191,36,0.08);  border: 1px solid rgba(251,191,36,0.25); }
+.verdict-badge.over   { background: rgba(233,69,96,0.15);   border: 1px solid rgba(233,69,96,0.4); }
+
+.verdict-word {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 10px;
+}
+.verdict-badge.great .verdict-word,
+.verdict-badge.good  .verdict-word { color: #48bb78; }
+.verdict-badge.fair  .verdict-word { color: #fbbf24; }
+.verdict-badge.over  .verdict-word { color: #e94560; }
+
+.verdict-reason {
+  font-size: 14px;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.7;
+}
+
+/* Price breakdown card */
+.result-card {
+  background: #111111;
+  border: 1px solid #222222;
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+
+.result-card-header {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 16px;
+}
+
+.price-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #1e1e1e;
+  gap: 8px;
+}
+.price-line:last-child { border-bottom: none; }
+
+.price-line-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  flex-shrink: 0;
+}
+
+.price-line-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  text-align: right;
+}
+
+.price-line-value.green  { color: #48bb78; font-size: 16px; }
+.price-line-value.amber  { color: #fbbf24; font-size: 18px; font-weight: 800; }
+.price-line-value.red    { color: #e94560; }
+.price-line-value.muted  { color: rgba(255,255,255,0.5); font-weight: 400; font-size: 13px; }
+
+/* Depreciation note */
+.dep-note {
+  font-size: 13px;
+  color: rgba(255,255,255,0.45);
+  font-style: italic;
+  line-height: 1.6;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+
+/* Red flag rows */
+.flag-row {
+  border-left: 3px solid #e94560;
+  background: rgba(233,69,96,0.06);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.5;
+}
+.flag-row:last-child { margin-bottom: 0; }
+
+/* Market context */
+.market-card {
+  background: #080808;
+  border: 1px solid #1e1e1e;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.6;
+}
+
+{% endblock %}
+
+{% block content %}
+
+<div class="pg-header">
+  <a href="/" class="back-link">&#8592; Home</a>
+  <h1 class="pg-title">Fair Price Checker</h1>
+  <p class="pg-subtitle">Is this used car priced fairly? Enter the details and find out.</p>
+</div>
+
+<div class="field-block">
+  <label class="field-label" for="fpCarInput">Which car?</label>
+  <div class="field-wrap">
+    <input type="text" id="fpCarInput" class="field-input"
+           placeholder="e.g. Maruti Swift, Honda City..."
+           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <div class="ac-dropdown" id="fpAC"></div>
+  </div>
+</div>
+
+<div class="field-block">
+  <label class="field-label" for="fpYear">Year of manufacture</label>
+  <input type="number" id="fpYear" class="field-input"
+         placeholder="e.g. 2019" inputmode="numeric" min="1990" max="2025">
+</div>
+
+<div class="field-block">
+  <label class="field-label" for="fpKm">Kilometres on odometer</label>
+  <input type="number" id="fpKm" class="field-input"
+         placeholder="e.g. 45000" inputmode="numeric" min="0">
+</div>
+
+<div class="field-block">
+  <div class="field-label">Overall condition?</div>
+  <div class="chip-group" data-group="condition">
+    <button class="sel-chip" data-value="Excellent — like new">Excellent — like new</button>
+    <button class="sel-chip" data-value="Good — minor wear">Good — minor wear</button>
+    <button class="sel-chip" data-value="Average — visible wear">Average — visible wear</button>
+    <button class="sel-chip" data-value="Poor — needs work">Poor — needs work</button>
+  </div>
+</div>
+
+<div class="field-block">
+  <label class="field-label" for="fpPrice">What is the seller asking? (&#8377;)</label>
+  <input type="number" id="fpPrice" class="field-input"
+         placeholder="e.g. 650000" inputmode="numeric" min="0">
+</div>
+
+<div class="field-block">
+  <label class="field-label" for="fpState">Which state are you in?</label>
+  <div class="select-wrapper">
+    <select id="fpState" class="field-select">
+      <option value="">— Select State —</option>
+    </select>
+  </div>
+</div>
+
+<div class="field-block">
+  <label class="field-label" for="fpCity">Your city</label>
+  <div class="select-wrapper">
+    <select id="fpCity" class="field-select" disabled>
+      <option value="">— Select State first —</option>
+    </select>
+  </div>
+</div>
+
+<button class="cta-btn" id="checkBtn" onclick="checkPrice()">Check Price &#8594;</button>
+
+<div id="fairprice-results"></div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/cities.js"></script>
+<script>
+  // ── Location dropdowns ─────────────────────────────────────────────────────
+  (function() {
+    const stateEl = document.getElementById('fpState');
+    const cityEl  = document.getElementById('fpCity');
+
+    Object.keys(INDIA_CITIES).sort().forEach(state => {
+      const opt = document.createElement('option');
+      opt.value = state;
+      opt.textContent = state;
+      stateEl.appendChild(opt);
+    });
+
+    stateEl.addEventListener('change', () => {
+      const state = stateEl.value;
+      cityEl.innerHTML = '';
+      if (!state) {
+        cityEl.disabled = true;
+        const o = document.createElement('option');
+        o.value = ''; o.textContent = '— Select State first —';
+        cityEl.appendChild(o);
+        return;
+      }
+      const cities = INDIA_CITIES[state] || [];
+      cities.forEach((city, i) => {
+        const o = document.createElement('option');
+        o.value = city; o.textContent = city;
+        if (i === 0) o.selected = true;
+        cityEl.appendChild(o);
+      });
+      cityEl.disabled = false;
+    });
+  })();
+
+  // ── State ──────────────────────────────────────────────────────────────────
+  let selectedCar = null;
+  let selCondition = null;
+
+  // ── Autocomplete ───────────────────────────────────────────────────────────
+  let carList = [];
+  fetch('/api/cars').then(r => r.json()).then(d => { carList = d; }).catch(() => {});
+
+  (function() {
+    const inp  = document.getElementById('fpCarInput');
+    const drop = document.getElementById('fpAC');
+    let focusIdx = -1;
+
+    function esc(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    function hi(text, q) {
+      const idx = text.toLowerCase().indexOf(q.toLowerCase());
+      if (idx === -1) return esc(text);
+      return esc(text.slice(0,idx)) + '<mark>' + esc(text.slice(idx,idx+q.length)) + '</mark>' + esc(text.slice(idx+q.length));
+    }
+    function close() { drop.classList.remove('open'); focusIdx = -1; }
+    function render() {
+      const q = inp.value.trim(); focusIdx = -1;
+      if (q.length < 2) { close(); return; }
+      const hits = carList.filter(c => c.toLowerCase().includes(q.toLowerCase())).slice(0,6);
+      drop.innerHTML = '';
+      if (!hits.length) {
+        const b = document.createElement('button');
+        b.type='button'; b.className='ac-item fallback';
+        b.innerHTML='Search for &ldquo;'+esc(q)+'&rdquo;';
+        b.addEventListener('mousedown', e => { e.preventDefault(); inp.value=q; selectedCar=q; close(); });
+        drop.appendChild(b);
+      } else {
+        hits.forEach(car => {
+          const b = document.createElement('button');
+          b.type='button'; b.className='ac-item'; b.innerHTML=hi(car,q); b.dataset.car=car;
+          b.addEventListener('mousedown', e => { e.preventDefault(); inp.value=car; selectedCar=car; close(); });
+          drop.appendChild(b);
+        });
+      }
+      drop.classList.add('open');
+    }
+    inp.addEventListener('input', () => { selectedCar=null; render(); });
+    inp.addEventListener('focus', () => { if (inp.value.trim().length>=2) render(); });
+    inp.addEventListener('keydown', e => {
+      if (!drop.classList.contains('open')) return;
+      const items = drop.querySelectorAll('.ac-item');
+      if (e.key==='ArrowDown') { e.preventDefault(); items[focusIdx]?.classList.remove('focused'); focusIdx=Math.min(items.length-1,focusIdx+1); items[focusIdx]?.classList.add('focused'); }
+      else if (e.key==='ArrowUp') { e.preventDefault(); items[focusIdx]?.classList.remove('focused'); focusIdx=Math.max(0,focusIdx-1); items[focusIdx]?.classList.add('focused'); }
+      else if (e.key==='Escape') close();
+    });
+    document.addEventListener('click', e => { if (!e.target.closest('.field-wrap')) close(); });
+  })();
+
+  // ── Condition chips ────────────────────────────────────────────────────────
+  document.querySelectorAll('[data-group="condition"] .sel-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('[data-group="condition"] .sel-chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      selCondition = chip.dataset.value;
+    });
+  });
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
+  function checkPrice() {
+    const car      = selectedCar || document.getElementById('fpCarInput').value.trim();
+    const year     = document.getElementById('fpYear').value.trim();
+    const km       = parseInt(document.getElementById('fpKm').value, 10) || 0;
+    const price    = parseInt(document.getElementById('fpPrice').value, 10) || 0;
+    const stateVal = document.getElementById('fpState').value.trim();
+    const cityVal  = document.getElementById('fpCity').value.trim();
+    const city     = cityVal && stateVal ? cityVal + ', ' + stateVal : (cityVal || stateVal || '');
+
+    if (!car)   { alert('Please enter the car name.'); return; }
+    if (!year)  { alert('Please enter the year.'); return; }
+    if (!price) { alert('Please enter the asking price.'); return; }
+    if (!city)  { alert('Please select your state and city.'); return; }
+
+    const resultsEl = document.getElementById('fairprice-results');
+    resultsEl.style.display = 'block';
+    resultsEl.innerHTML = `<div class="loading-state"><div class="spinner"></div>Checking the price…</div>`;
+    resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    const btn = document.getElementById('checkBtn');
+    btn.disabled = true; btn.textContent = 'Checking…';
+
+    fetch('/api/fairprice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        car, year, km, condition: selCondition || 'Good — minor wear',
+        asking_price: price, city,
+      }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) throw new Error(data.error);
+      renderVerdict(data);
+    })
+    .catch(err => {
+      resultsEl.innerHTML = `<div class="loading-state" style="color:#e94560;">Error: ${escHtml(err.message)}</div>`;
+    })
+    .finally(() => { btn.disabled = false; btn.innerHTML = 'Check Price &#8594;'; });
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+  function renderVerdict(d) {
+    const v = (d.verdict || 'FAIR PRICE').toUpperCase();
+    let vClass = 'fair';
+    if (v.includes('GREAT')) vClass = 'great';
+    else if (v.includes('GOOD'))  vClass = 'good';
+    else if (v.includes('OVER'))  vClass = 'over';
+
+    const flagsHtml = (d.red_flags_in_pricing || []).length ? `
+      <div class="result-card">
+        <div class="result-card-header">Pricing Red Flags</div>
+        ${d.red_flags_in_pricing.map(f => `<div class="flag-row">${escHtml(f)}</div>`).join('')}
+      </div>` : '';
+
+    const html = `
+      <div class="verdict-badge ${vClass}">
+        <div class="verdict-word">${escHtml(d.verdict || '—')}</div>
+        <div class="verdict-reason">${escHtml(d.verdict_reason || '')}</div>
+      </div>
+
+      <div class="result-card">
+        <div class="result-card-header">Price Breakdown</div>
+
+        <div class="price-line">
+          <span class="price-line-label">Market range</span>
+          <span class="price-line-value muted">${escHtml(d.market_price_range || '—')}</span>
+        </div>
+        <div class="price-line">
+          <span class="price-line-label">Fair price</span>
+          <span class="price-line-value green">${escHtml(d.fair_price || '—')}</span>
+        </div>
+        <div class="price-line">
+          <span class="price-line-label">Asking price</span>
+          <span class="price-line-value ${vClass === 'over' ? 'red' : 'muted'}">${escHtml(d.asking_price_assessment || '—')}</span>
+        </div>
+        <div class="price-line">
+          <span class="price-line-label">Negotiate to</span>
+          <span class="price-line-value amber">${escHtml(d.negotiate_to || '—')}</span>
+        </div>
+        <div class="price-line">
+          <span class="price-line-label">Walk away above</span>
+          <span class="price-line-value red">${escHtml(d.max_pay || '—')}</span>
+        </div>
+      </div>
+
+      ${d.depreciation_note ? `<div class="dep-note">${escHtml(d.depreciation_note)}</div>` : ''}
+
+      ${flagsHtml}
+
+      ${d.market_context ? `
+      <div class="market-card">${escHtml(d.market_context)}</div>` : ''}
+    `;
+
+    document.getElementById('fairprice-results').innerHTML = html;
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,1070 @@
+{% extends "base.html" %}
+
+{% block title %}Used Car Wizard — CarTruth{% endblock %}
+
+{% block extra_styles %}
+
+/* ── Page header ─────────────────────────────────── */
+.wiz-header {
+  padding: 20px 0 20px;
+}
+
+.back-link {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  margin-bottom: 14px;
+  transition: color 0.15s;
+}
+
+.back-link:hover { color: rgba(255, 255, 255, 0.8); }
+
+.wiz-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.wiz-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 16px;
+}
+
+.warn-card {
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #fbbf24;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+/* ── Step 0 — car input ──────────────────────────── */
+#step-car {
+  padding-bottom: 40px;
+}
+
+.field-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 8px;
+}
+
+.field-wrap {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.wiz-input {
+  width: 100%;
+  background: #111111;
+  border: 1px solid #333333;
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  padding: 14px 16px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  -webkit-appearance: none;
+}
+
+.wiz-input::placeholder { color: rgba(255, 255, 255, 0.28); }
+
+.wiz-input:focus {
+  border-color: #e94560;
+  background: #161616;
+}
+
+/* ── Autocomplete dropdown ───────────────────────── */
+.ac-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  width: 100%;
+  background: #111111;
+  border: 1px solid #333333;
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 200;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+}
+
+.ac-dropdown.open { display: block; }
+
+.ac-item {
+  padding: 11px 16px;
+  font-size: 14px;
+  color: #ffffff;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.4;
+  transition: background 0.1s;
+}
+
+.ac-item:not(:last-child) { border-bottom: 1px solid #1e1e1e; }
+.ac-item:hover, .ac-item.focused { background: #161616; }
+.ac-item mark { background: transparent; color: #e94560; font-weight: 700; }
+.ac-item.fallback { color: rgba(255,255,255,0.4); font-style: italic; }
+
+/* ── Start button + shared CTA ───────────────────── */
+.cta-btn {
+  width: 100%;
+  padding: 14px;
+  background: #e94560;
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.cta-btn:hover { background: #d03a52; }
+.cta-btn:active { transform: scale(0.98); }
+.cta-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+/* ── Step: questions ─────────────────────────────── */
+#step-questions { display: none; padding-bottom: 40px; }
+
+/* Progress bar */
+.progress-wrap {
+  margin-bottom: 20px;
+}
+
+.progress-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.35);
+  text-align: right;
+  margin-bottom: 8px;
+}
+
+.progress-track {
+  height: 3px;
+  background: #1a1a1a;
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #e94560;
+  border-radius: 100px;
+  transition: width 0.3s ease;
+}
+
+/* Answer summary strip */
+.answer-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 14px;
+  min-height: 10px;
+}
+
+.ans-chip {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+  background: #161616;
+  border-radius: 100px;
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Question card */
+.q-card {
+  background: #111111;
+  border: 1px solid #222222;
+  border-radius: 20px;
+  padding: 32px 20px 20px;
+  margin-bottom: 14px;
+  animation: slideUp 0.3s ease;
+}
+
+.q-number {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 10px;
+}
+
+.q-text {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #ffffff;
+  margin-bottom: 22px;
+}
+
+/* Answer options */
+.opt-btn {
+  width: 100%;
+  min-height: 56px;
+  padding: 14px 18px;
+  margin-bottom: 10px;
+  background: #111111;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  line-height: 1.4;
+  transition: background 0.15s, border-color 0.15s;
+  -webkit-user-select: none;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.opt-btn:last-of-type { margin-bottom: 0; }
+
+.opt-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.opt-btn.selected {
+  background: rgba(233, 69, 96, 0.15);
+  border-color: #e94560;
+}
+
+/* Radio circle */
+.radio-circle {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  margin-right: 12px;
+  transition: all 0.2s;
+}
+
+.opt-btn.selected .radio-circle {
+  background: #e94560;
+  border-color: #e94560;
+  box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.2);
+}
+
+/* Nav row */
+.q-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.back-btn {
+  background: none;
+  border: 1px solid #333333;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 12px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.back-btn:hover {
+  background: #161616;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.next-btn {
+  flex: 1;
+  padding: 14px;
+  background: #e94560;
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: none;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.next-btn.visible { display: block; }
+.next-btn:hover { background: #d03a52; }
+.next-btn:active { transform: scale(0.98); }
+
+/* ── Step: results ───────────────────────────────── */
+#step-results { display: none; padding-bottom: 48px; }
+
+.loading-state {
+  text-align: center;
+  padding: 48px 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #e94560;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 14px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Verdict banner */
+.verdict-banner {
+  border-radius: 16px;
+  padding: 28px;
+  margin-bottom: 16px;
+  text-align: center;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.verdict-banner.buy  { background: rgba(72,187,120,0.15);  border: 1px solid rgba(72,187,120,0.4); }
+.verdict-banner.skip { background: rgba(233,69,96,0.15);   border: 1px solid rgba(233,69,96,0.4); }
+.verdict-banner.neg  { background: rgba(251,191,36,0.1);   border: 1px solid rgba(251,191,36,0.3); }
+
+.verdict-car-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 8px;
+}
+
+.verdict-heading {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 0;
+  line-height: 1.15;
+}
+
+.verdict-banner.buy  .verdict-heading { color: #48bb78; }
+.verdict-banner.skip .verdict-heading { color: #e94560; }
+.verdict-banner.neg  .verdict-heading { color: #fbbf24; }
+
+.verdict-reason {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.7;
+  margin-top: 12px;
+}
+
+/* Risk + score pill row */
+.risk-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.risk-pill {
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 100px;
+  padding: 6px 14px;
+}
+
+.risk-pill.low    { background: rgba(72,187,120,0.15);   color: #48bb78; }
+.risk-pill.medium { background: rgba(251,191,36,0.15);   color: #fbbf24; }
+.risk-pill.high   { background: rgba(233,69,96,0.15);    color: #e94560; }
+
+.score-pill {
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 100px;
+  padding: 6px 14px;
+  background: #1e1e1e;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* Result cards */
+.result-card {
+  background: #111111;
+  border: 1px solid #222222;
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+
+.result-card-header {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 14px;
+}
+
+/* Flag rows (stacked, left-border style) */
+.flag-section-header {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.flag-section-header.red   { color: #e94560; }
+.flag-section-header.green { color: #48bb78; }
+
+.flag-section + .flag-section { margin-top: 16px; }
+
+.flag-row {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.5;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  border-radius: 0 8px 8px 0;
+}
+
+.flag-row:last-child { margin-bottom: 0; }
+
+.flag-row.red {
+  border-left: 3px solid #e94560;
+  background: rgba(233, 69, 96, 0.06);
+}
+
+.flag-row.green {
+  border-left: 3px solid #48bb78;
+  background: rgba(72, 187, 120, 0.06);
+}
+
+/* Negotiate + mechanic lists */
+.point-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.point-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.6;
+  padding: 8px 0;
+  border-bottom: 1px solid #1e1e1e;
+}
+
+.point-item:last-child { border-bottom: none; }
+
+.point-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.point-dot.amber { background: #fbbf24; }
+
+.point-arrow {
+  font-size: 13px;
+  color: #e94560;
+  flex-shrink: 0;
+  margin-top: 1px;
+  line-height: 1.6;
+}
+
+/* Cost boxes */
+.cost-box {
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.cost-box-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #fbbf24;
+  margin-bottom: 8px;
+}
+
+.cost-box-text {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+}
+
+/* Price reduction */
+.reduction-box {
+  background: rgba(72, 187, 120, 0.1);
+  border: 1px solid rgba(72, 187, 120, 0.25);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.reduction-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(72, 187, 120, 0.7);
+  margin-bottom: 8px;
+}
+
+.reduction-amount {
+  font-size: 24px;
+  font-weight: 800;
+  color: #48bb78;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+/* Start over */
+.start-over-btn {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 24px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.start-over-btn:hover {
+  background: #161616;
+  border-color: #444444;
+  color: rgba(255,255,255,0.85);
+}
+
+{% endblock %}
+
+{% block content %}
+
+<!-- Page header -->
+<div class="wiz-header">
+  <a href="/" class="back-link">&#8592; Home</a>
+  <h1 class="wiz-title">Used Car Wizard</h1>
+  <p class="wiz-subtitle">Answer 10 quick questions. Get an honest buy/skip verdict.</p>
+  <div class="warn-card">Have the seller present. Walk around the car as you answer these.</div>
+</div>
+
+<!-- Step 0: Car input -->
+<div id="step-car">
+  <div class="field-label">Which car are you inspecting?</div>
+  <div class="field-wrap">
+    <input
+      type="text"
+      id="carNameInput"
+      class="wiz-input"
+      placeholder="e.g. Maruti Swift, Honda City..."
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+    >
+    <div class="ac-dropdown" id="wizAC"></div>
+  </div>
+
+  <div class="field-label">What year is it?</div>
+  <div class="field-wrap">
+    <input
+      type="text"
+      id="carYearInput"
+      class="wiz-input"
+      placeholder="e.g. 2019"
+      maxlength="4"
+      inputmode="numeric"
+    >
+  </div>
+
+  <button class="cta-btn" id="startBtn" onclick="startInspection()">
+    Start Inspection &#8594;
+  </button>
+</div>
+
+<!-- Step 1-10: Questions -->
+<div id="step-questions">
+  <div class="progress-wrap">
+    <div class="progress-label" id="progressText">Question 1 of 10</div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="answer-summary" id="answerSummary"></div>
+
+  <div class="q-card" id="qCard">
+    <!-- Rendered by JS -->
+  </div>
+
+  <div class="q-nav" id="qNav">
+    <button class="back-btn" id="backBtn" onclick="goBack()">&#8592; Back</button>
+    <button class="next-btn" id="nextBtn" onclick="goNext()">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- Results -->
+<div id="step-results"></div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// ── Question data ────────────────────────────────────────────────────────────
+const QUESTIONS = [
+  {
+    text: "How does the engine sound when idling?",
+    options: [
+      { label: "Smooth and quiet",                    risk: 0 },
+      { label: "Slight vibration, nothing alarming",  risk: 1 },
+      { label: "Rough or uneven",                     risk: 3 },
+      { label: "Knocking or rattling sounds",         risk: 5 },
+    ]
+  },
+  {
+    text: "Check the engine oil — pull the dipstick. What do you see?",
+    options: [
+      { label: "Clean, amber/golden oil at correct level",       risk: 0 },
+      { label: "Dark but not sludgy, correct level",             risk: 1 },
+      { label: "Very dark/black, low level",                     risk: 3 },
+      { label: "Milky or foamy (water contamination)",           risk: 5 },
+    ]
+  },
+  {
+    text: "Look under the car. Do you see any leaks or wet spots?",
+    options: [
+      { label: "Completely dry underneath",                             risk: 0 },
+      { label: "Just a small water drip (AC condensation is normal)",  risk: 0 },
+      { label: "One small oil spot",                                    risk: 2 },
+      { label: "Multiple leaks or large wet patches",                   risk: 5 },
+    ]
+  },
+  {
+    text: "Check the tyres — all four of them",
+    options: [
+      { label: "All four have good tread, even wear",                   risk: 0 },
+      { label: "2–3 tyres decent, 1 needs replacement soon",           risk: 1 },
+      { label: "Uneven wear on some tyres (possible alignment issues)", risk: 3 },
+      { label: "Bald or cracked tyres",                                 risk: 4 },
+    ]
+  },
+  {
+    text: "Open each door and check the door gaps (gaps between door and body)",
+    options: [
+      { label: "All gaps are even and consistent",               risk: 0 },
+      { label: "One gap is slightly uneven",                     risk: 2 },
+      { label: "Multiple uneven gaps — possible accident repair",risk: 4 },
+      { label: "Obvious panel gaps or misaligned doors",         risk: 5 },
+    ]
+  },
+  {
+    text: "Check the service history — does the seller have records?",
+    options: [
+      { label: "Complete service book stamped by authorised center",    risk: 0 },
+      { label: "Some records, mostly maintained",                       risk: 1 },
+      { label: "Partial records or only bills, no service book",        risk: 2 },
+      { label: "No records — seller says \"it was maintained\"",        risk: 4 },
+    ]
+  },
+  {
+    text: "Start the AC and let it run for 2 minutes. How is it?",
+    options: [
+      { label: "Cools very fast, no strange smells",         risk: 0 },
+      { label: "Cools but takes a bit longer than expected", risk: 1 },
+      { label: "Weak cooling or mild musty smell",           risk: 2 },
+      { label: "Not cooling at all or strong bad smell",     risk: 4 },
+    ]
+  },
+  {
+    text: "Take it for a test drive. How does it brake?",
+    options: [
+      { label: "Firm pedal, stops straight without pulling",     risk: 0 },
+      { label: "Pedal feels slightly soft but okay",             risk: 1 },
+      { label: "Car pulls to one side when braking",             risk: 3 },
+      { label: "Squealing, grinding, or very soft pedal",        risk: 5 },
+    ]
+  },
+  {
+    text: "How does the gear shifting feel? (Automatic: how do gear changes feel?)",
+    options: [
+      { label: "Smooth, no hesitation",                      risk: 0 },
+      { label: "Slightly stiff but acceptable",              risk: 1 },
+      { label: "Grinding or crunching on some gears",        risk: 4 },
+      { label: "Hard to get into gear / jerky auto shifts",  risk: 4 },
+    ]
+  },
+  {
+    text: "Check the interior — seats, dashboard, all buttons and windows",
+    options: [
+      { label: "Everything works, clean interior",                    risk: 0 },
+      { label: "Minor cosmetic issues only (scratches, small stain)", risk: 1 },
+      { label: "Some features not working (window, AC vent, etc.)",   risk: 2 },
+      { label: "Multiple things broken or heavily worn interior",     risk: 3 },
+    ]
+  },
+];
+
+// ── State ────────────────────────────────────────────────────────────────────
+let selectedCar  = null;
+let currentQ     = 0;   // 0-indexed into QUESTIONS
+let answers      = new Array(QUESTIONS.length).fill(null);
+// Each answer: { question, answer, risk } | null
+
+// ── Utility ──────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function show(id)  { document.getElementById(id).style.display = 'block'; }
+function hide(id)  { document.getElementById(id).style.display = 'none'; }
+
+// ── Autocomplete ─────────────────────────────────────────────────────────────
+let carList = [];
+fetch('/api/cars').then(r => r.json()).then(d => { carList = d; }).catch(() => {});
+
+(function() {
+  const inp  = document.getElementById('carNameInput');
+  const drop = document.getElementById('wizAC');
+  let focusIdx = -1;
+
+  function esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function hi(text, q) {
+    const idx = text.toLowerCase().indexOf(q.toLowerCase());
+    if (idx === -1) return esc(text);
+    return esc(text.slice(0, idx))
+      + '<mark>' + esc(text.slice(idx, idx + q.length)) + '</mark>'
+      + esc(text.slice(idx + q.length));
+  }
+
+  function close() { drop.classList.remove('open'); focusIdx = -1; }
+
+  function render() {
+    const q = inp.value.trim();
+    focusIdx = -1;
+    if (q.length < 2) { close(); return; }
+    const hits = carList.filter(c => c.toLowerCase().includes(q.toLowerCase())).slice(0, 6);
+    drop.innerHTML = '';
+    if (!hits.length) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'ac-item fallback';
+      b.innerHTML = 'Search for &ldquo;' + esc(q) + '&rdquo;';
+      b.addEventListener('mousedown', e => { e.preventDefault(); inp.value = q; selectedCar = q; close(); });
+      drop.appendChild(b);
+    } else {
+      hits.forEach(car => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'ac-item';
+        b.innerHTML = hi(car, q); b.dataset.car = car;
+        b.addEventListener('mousedown', e => {
+          e.preventDefault(); inp.value = car; selectedCar = car; close();
+        });
+        drop.appendChild(b);
+      });
+    }
+    drop.classList.add('open');
+  }
+
+  inp.addEventListener('input', () => { selectedCar = null; render(); });
+  inp.addEventListener('focus', () => { if (inp.value.trim().length >= 2) render(); });
+  inp.addEventListener('keydown', e => {
+    if (!drop.classList.contains('open')) return;
+    const items = drop.querySelectorAll('.ac-item');
+    if (e.key === 'ArrowDown') { e.preventDefault(); items[focusIdx]?.classList.remove('focused'); focusIdx = Math.min(items.length-1, focusIdx+1); items[focusIdx]?.classList.add('focused'); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); items[focusIdx]?.classList.remove('focused'); focusIdx = Math.max(0, focusIdx-1); items[focusIdx]?.classList.add('focused'); }
+    else if (e.key === 'Escape') close();
+  });
+  document.addEventListener('click', e => { if (!e.target.closest('#step-car')) close(); });
+})();
+
+// ── Step 0 → start inspection ─────────────────────────────────────────────
+function startInspection() {
+  const car  = selectedCar || document.getElementById('carNameInput').value.trim();
+  const year = document.getElementById('carYearInput').value.trim();
+  if (!car)  { alert('Please enter the car name.'); return; }
+  if (!year || !/^\d{4}$/.test(year)) { alert('Please enter a valid 4-digit year.'); return; }
+
+  selectedCar = car;
+  answers = new Array(QUESTIONS.length).fill(null);
+  currentQ = 0;
+
+  hide('step-car');
+  show('step-questions');
+  renderQuestion();
+}
+
+// ── Question renderer ─────────────────────────────────────────────────────
+function renderQuestion() {
+  const q      = QUESTIONS[currentQ];
+  const saved  = answers[currentQ];
+  const pct    = Math.round((currentQ / QUESTIONS.length) * 100);
+
+  // Progress bar
+  document.getElementById('progressText').textContent = `Question ${currentQ + 1} of ${QUESTIONS.length}`;
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  // Answer summary chips
+  const summEl = document.getElementById('answerSummary');
+  summEl.innerHTML = answers.slice(0, currentQ).map((a, i) => {
+    if (!a) return '';
+    const short = a.answer.length > 22 ? a.answer.slice(0, 20) + '…' : a.answer;
+    return `<span class="ans-chip">Q${i + 1}: ${escHtml(short)}</span>`;
+  }).join('');
+
+  // Question card
+  const card = document.getElementById('qCard');
+  card.innerHTML = `
+    <div class="q-number">Question ${currentQ + 1}</div>
+    <div class="q-text">${escHtml(q.text)}</div>
+    ${q.options.map((opt, i) => `
+      <button
+        type="button"
+        class="opt-btn${saved && saved.answer === opt.label ? ' selected' : ''}"
+        data-idx="${i}"
+        onclick="selectAnswer(${i})"
+      ><span class="radio-circle"></span>${escHtml(opt.label)}</button>
+    `).join('')}
+  `;
+
+  // Nav: hide Back on Q1, hide Next until selection
+  const backBtn = document.getElementById('backBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  backBtn.style.display = currentQ === 0 ? 'none' : '';
+  nextBtn.className = 'next-btn' + (saved ? ' visible' : '');
+
+  // Last question: change Next to Submit
+  if (currentQ === QUESTIONS.length - 1) {
+    nextBtn.innerHTML = 'Get Verdict &#8594;';
+  } else {
+    nextBtn.innerHTML = 'Next &#8594;';
+  }
+}
+
+function selectAnswer(optIdx) {
+  const q   = QUESTIONS[currentQ];
+  const opt = q.options[optIdx];
+  answers[currentQ] = { question: q.text, answer: opt.label, risk: opt.risk };
+
+  // Update button styles
+  document.querySelectorAll('.opt-btn').forEach((btn, i) => {
+    btn.classList.toggle('selected', i === optIdx);
+  });
+
+  document.getElementById('nextBtn').classList.add('visible');
+}
+
+function goBack() {
+  if (currentQ === 0) {
+    // Return to car input
+    answers = new Array(QUESTIONS.length).fill(null);
+    hide('step-questions');
+    show('step-car');
+    return;
+  }
+  currentQ--;
+  renderQuestion();
+}
+
+function goNext() {
+  if (!answers[currentQ]) return;
+
+  if (currentQ < QUESTIONS.length - 1) {
+    currentQ++;
+    renderQuestion();
+  } else {
+    submitWizard();
+  }
+}
+
+// ── Submit ────────────────────────────────────────────────────────────────
+function submitWizard() {
+  const car    = selectedCar || document.getElementById('carNameInput').value.trim();
+  const year   = document.getElementById('carYearInput').value.trim();
+  const filled = answers.filter(Boolean);
+  const total  = filled.reduce((sum, a) => sum + a.risk, 0);
+
+  hide('step-questions');
+  const resultsEl = document.getElementById('step-results');
+  resultsEl.style.display = 'block';
+  resultsEl.innerHTML = `
+    <div class="loading-state">
+      <div class="spinner"></div>
+      Analysing your inspection… getting CarTruth verdict
+    </div>`;
+  resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  fetch('/api/wizard', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ car, year, answers: filled, total_risk: total }),
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.error) throw new Error(data.error);
+    renderVerdict(data, car, year, total);
+  })
+  .catch(err => {
+    resultsEl.innerHTML = `<div class="loading-state" style="color:#e94560;">
+      Error: ${escHtml(err.message)}. Please try again.
+    </div>
+    <button class="start-over-btn" onclick="resetWizard()">Start Over</button>`;
+  });
+}
+
+// ── Render verdict ────────────────────────────────────────────────────────
+function renderVerdict(d, car, year, totalRisk) {
+  const v      = (d.verdict || 'NEGOTIATE').toUpperCase();
+  const vClass = v === 'BUY' ? 'buy' : v === 'SKIP' ? 'skip' : 'neg';
+  const vHeading = v === 'BUY'
+    ? '&#10003; BUY THIS CAR'
+    : v === 'SKIP'
+    ? '&#10007; SKIP THIS CAR'
+    : '&#9889; NEGOTIATE HARD';
+
+  const rl = (d.risk_level || 'Medium').toLowerCase();
+
+  // Flag rows — stacked, left-border style
+  const redFlagRows = (d.red_flags || []).map(f =>
+    `<div class="flag-row red">${escHtml(f)}</div>`
+  ).join('');
+
+  const greenFlagRows = (d.green_flags || []).map(f =>
+    `<div class="flag-row green">${escHtml(f)}</div>`
+  ).join('');
+
+  const flagsHtml = (redFlagRows || greenFlagRows) ? `
+    <div class="result-card">
+      <div class="result-card-header">Inspection Flags</div>
+      ${redFlagRows ? `
+        <div class="flag-section">
+          <div class="flag-section-header red">Red Flags</div>
+          ${redFlagRows}
+        </div>` : ''}
+      ${greenFlagRows ? `
+        <div class="flag-section${redFlagRows ? ' flag-section' : ''}">
+          <div class="flag-section-header green">Green Flags</div>
+          ${greenFlagRows}
+        </div>` : ''}
+    </div>` : '';
+
+  // Negotiate points
+  const negotiateHtml = (d.negotiate_points || []).length ? `
+    <div class="result-card">
+      <div class="result-card-header">Negotiate On These Points</div>
+      <ul class="point-list">
+        ${(d.negotiate_points).map(p => `
+          <li class="point-item">
+            <span class="point-dot amber"></span>
+            <span>${escHtml(p)}</span>
+          </li>`).join('')}
+      </ul>
+    </div>` : '';
+
+  // Mechanic checklist
+  const mechHtml = (d.must_check_before_buying || []).length ? `
+    <div class="result-card">
+      <div class="result-card-header">Get These Checked by a Mechanic</div>
+      <ul class="point-list">
+        ${(d.must_check_before_buying).map(p => `
+          <li class="point-item">
+            <span class="point-arrow">&#8594;</span>
+            <span>${escHtml(p)}</span>
+          </li>`).join('')}
+      </ul>
+    </div>` : '';
+
+  // Immediate costs
+  const costsHtml = d.estimated_immediate_costs ? `
+    <div class="cost-box">
+      <div class="cost-box-label">Expect to Spend Soon</div>
+      <div class="cost-box-text">${escHtml(d.estimated_immediate_costs)}</div>
+    </div>` : '';
+
+  // Fair price reduction
+  const reductionHtml = d.fair_price_reduction ? `
+    <div class="reduction-box">
+      <div class="reduction-label">Negotiate This Much Down</div>
+      <div class="reduction-amount">${escHtml(d.fair_price_reduction)}</div>
+    </div>` : '';
+
+  const html = `
+    <div class="verdict-banner ${vClass}">
+      <div class="verdict-car-label">${escHtml(year)} ${escHtml(car)}</div>
+      <div class="verdict-heading">${vHeading}</div>
+      <div class="verdict-reason">${escHtml(d.verdict_reason || '')}</div>
+    </div>
+
+    <div class="risk-row">
+      <span class="risk-pill ${rl}">Risk: ${escHtml(d.risk_level || 'Medium')}</span>
+      <span class="score-pill">Score ${totalRisk}/45</span>
+    </div>
+
+    ${flagsHtml}
+    ${negotiateHtml}
+    ${mechHtml}
+    ${costsHtml}
+    ${reductionHtml}
+
+    <button class="start-over-btn" onclick="resetWizard()">Start Over</button>
+  `;
+
+  document.getElementById('step-results').innerHTML = html;
+}
+
+// ── Reset ─────────────────────────────────────────────────────────────────
+function resetWizard() {
+  selectedCar = null;
+  answers = new Array(QUESTIONS.length).fill(null);
+  currentQ = 0;
+  document.getElementById('carNameInput').value = '';
+  document.getElementById('carYearInput').value  = '';
+  document.getElementById('step-results').style.display = 'none';
+  document.getElementById('step-results').innerHTML = '';
+  hide('step-questions');
+  show('step-car');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+{% endblock %}

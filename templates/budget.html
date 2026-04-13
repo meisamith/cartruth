@@ -1,0 +1,630 @@
+{% extends "base.html" %}
+
+{% block title %}Budget Calculator — CarTruth{% endblock %}
+
+{% block extra_styles %}
+
+.back-link {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.5);
+  text-decoration: none;
+  margin-bottom: 14px;
+  transition: color 0.15s;
+}
+.back-link:hover { color: rgba(255,255,255,0.8); }
+
+.pg-header { padding: 20px 0 24px; }
+.pg-title   { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+.pg-subtitle { font-size: 14px; color: rgba(255,255,255,0.45); margin-bottom: 0; }
+
+/* ── Form ─────────────────────────────────────────── */
+.bform { padding-bottom: 8px; }
+
+.field-block  { margin-bottom: 20px; }
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 8px;
+}
+
+.field-input {
+  width: 100%;
+  background: #111111;
+  border: 1px solid #333333;
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  padding: 14px 16px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  -webkit-appearance: none;
+}
+.field-input::placeholder { color: rgba(255,255,255,0.28); }
+.field-input:focus {
+  border-color: #e94560;
+  background: #161616;
+  box-shadow: 0 0 0 3px rgba(233,69,96,0.08);
+  outline: none;
+}
+
+.field-select:focus {
+  border-color: #e94560;
+  background: #161616;
+  box-shadow: 0 0 0 3px rgba(233,69,96,0.08);
+  outline: none;
+}
+
+.field-hint {
+  font-size: 12px;
+  color: rgba(255,255,255,0.3);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+/* ── Location selects ─────────────────────────────── */
+.select-wrapper {
+  position: relative;
+}
+.select-wrapper::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid rgba(255,255,255,0.4);
+}
+.field-select {
+  width: 100%;
+  background: #111111;
+  border: 1px solid #333333;
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  padding: 14px 40px 14px 16px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.field-select:focus {
+  border-color: #e94560;
+  background: #161616;
+}
+.field-select option {
+  background: #111111;
+  color: #ffffff;
+}
+.field-select:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Chips ────────────────────────────────────────── */
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sel-chip {
+  padding: 8px 16px;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent;
+  color: rgba(255,255,255,0.7);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.sel-chip:hover {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.28);
+  color: #fff;
+}
+.sel-chip.selected {
+  background: #e94560;
+  border-color: #e94560;
+  color: #ffffff;
+}
+.sel-chip.multi.selected {
+  background: rgba(233,69,96,0.2);
+  border-color: #e94560;
+  color: #ffffff;
+}
+
+/* ── CTA button ───────────────────────────────────── */
+.cta-btn {
+  width: 100%;
+  padding: 16px;
+  background: #e94560;
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  margin-bottom: 32px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.cta-btn:hover {
+  background: #d03a52;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(233,69,96,0.3);
+}
+.cta-btn:active  { transform: scale(0.98); }
+.cta-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+.cta-btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+  transition: left 0.4s ease;
+}
+.cta-btn:hover::after { left: 150%; }
+
+/* ── Results ──────────────────────────────────────── */
+#budget-results { display: none; padding-bottom: 48px; }
+
+.loading-state {
+  text-align: center;
+  padding: 48px 0;
+  color: rgba(255,255,255,0.5);
+  font-size: 14px;
+}
+
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #e94560;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 14px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.budget-analysis {
+  font-size: 14px;
+  color: rgba(255,255,255,0.5);
+  font-style: italic;
+  text-align: center;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+/* Car card */
+.car-card {
+  background: #111111;
+  border: 1px solid #222222;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 12px;
+}
+
+.car-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.rank-badge {
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 100px;
+  padding: 4px 11px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.rank-badge.gold   { background: rgba(251,191,36,0.2);  color: #fbbf24; }
+.rank-badge.silver { background: #1e1e1e; color: rgba(255,255,255,0.55); }
+
+.car-card-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.25;
+}
+
+.car-why {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+.price-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.price-ex {
+  font-size: 13px;
+  color: rgba(255,255,255,0.35);
+  text-decoration: line-through;
+}
+
+.price-onroad {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.price-fit {
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 100px;
+  padding: 3px 10px;
+}
+.price-fit.yes { background: rgba(72,187,120,0.15); color: #48bb78; }
+.price-fit.no  { background: rgba(233,69,96,0.12);  color: #e94560; }
+
+.budget-left {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+}
+
+.stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.stat-pill {
+  font-size: 11px;
+  font-weight: 500;
+  background: #1e1e1e;
+  border-radius: 100px;
+  padding: 4px 11px;
+  color: rgba(255,255,255,0.6);
+  white-space: nowrap;
+}
+
+.variant-box {
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.variant-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #fbbf24;
+  margin-bottom: 4px;
+}
+
+.concern-row {
+  border-left: 3px solid #fbbf24;
+  background: rgba(251,191,36,0.06);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.5;
+}
+
+/* Tips / Mistakes */
+.tip-card {
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 12px;
+}
+.tip-card.green {
+  background: rgba(72,187,120,0.08);
+  border: 1px solid rgba(72,187,120,0.2);
+}
+.tip-card.red {
+  background: rgba(233,69,96,0.08);
+  border: 1px solid rgba(233,69,96,0.2);
+}
+
+.tip-card-header {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.tip-card.green .tip-card-header { color: rgba(72,187,120,0.8); }
+.tip-card.red   .tip-card-header { color: rgba(233,69,96,0.8); }
+
+.tip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.6;
+  padding: 6px 0;
+  border-bottom: 1px solid #1e1e1e;
+}
+.tip-item:last-child { border-bottom: none; }
+
+.tip-icon { flex-shrink: 0; font-weight: 700; margin-top: 1px; }
+.tip-icon.green { color: #48bb78; }
+.tip-icon.red   { color: #e94560; }
+
+{% endblock %}
+
+{% block content %}
+
+<div class="pg-header">
+  <a href="/" class="back-link">&#8592; Home</a>
+  <h1 class="pg-title">Budget Calculator</h1>
+  <p class="pg-subtitle">Enter your real budget. Get cars that actually fit your life.</p>
+</div>
+
+<div class="bform">
+
+  <div class="field-block">
+    <label class="field-label" for="budgetInput">What's your total budget?</label>
+    <input type="number" id="budgetInput" class="field-input"
+           placeholder="e.g. 800000" inputmode="numeric" min="0">
+    <div class="field-hint">Include registration, insurance, and accessories in your budget</div>
+  </div>
+
+  <div class="field-block">
+    <label class="field-label" for="stateSelect">Which state are you in?</label>
+    <div class="select-wrapper">
+      <select id="stateSelect" class="field-select">
+        <option value="">— Select State —</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="field-block">
+    <label class="field-label" for="citySelect">Your city</label>
+    <div class="select-wrapper">
+      <select id="citySelect" class="field-select" disabled>
+        <option value="">— Select State first —</option>
+      </select>
+    </div>
+    <div class="field-hint">Affects registration costs and road tax</div>
+  </div>
+
+  <div class="field-block">
+    <div class="field-label">How will you mainly use this car?</div>
+    <div class="chip-group" data-group="usage" data-mode="single">
+      <button class="sel-chip" data-value="Daily city commute">Daily city commute</button>
+      <button class="sel-chip" data-value="Mix of city + highway">Mix of city + highway</button>
+      <button class="sel-chip" data-value="Outstation trips">Outstation trips</button>
+      <button class="sel-chip" data-value="Family use">Family use</button>
+    </div>
+  </div>
+
+  <div class="field-block">
+    <div class="field-label">Fuel preference?</div>
+    <div class="chip-group" data-group="fuel" data-mode="single">
+      <button class="sel-chip" data-value="No preference">No preference</button>
+      <button class="sel-chip" data-value="Petrol only">Petrol only</button>
+      <button class="sel-chip" data-value="Diesel only">Diesel only</button>
+      <button class="sel-chip" data-value="Open to EV/CNG">Open to EV/CNG</button>
+    </div>
+  </div>
+
+  <div class="field-block">
+    <div class="field-label">Any must-haves? <span style="font-size:11px;color:rgba(255,255,255,0.3);font-weight:400;text-transform:none;letter-spacing:0">(pick all that apply)</span></div>
+    <div class="chip-group" data-group="musthaves" data-mode="multi">
+      <button class="sel-chip multi" data-value="Automatic gearbox">Automatic gearbox</button>
+      <button class="sel-chip multi" data-value="Good AC">Good AC</button>
+      <button class="sel-chip multi" data-value="7 seater">7 seater</button>
+      <button class="sel-chip multi" data-value="High ground clearance">High ground clearance</button>
+      <button class="sel-chip multi" data-value="Low maintenance">Low maintenance</button>
+      <button class="sel-chip multi" data-value="Good resale value">Good resale value</button>
+    </div>
+  </div>
+
+  <button class="cta-btn" id="findBtn" onclick="findCars()">Find My Cars &#8594;</button>
+</div>
+
+<div id="budget-results"></div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/cities.js"></script>
+<script>
+  // ── Location dropdowns ─────────────────────────────────────────────────────
+  (function() {
+    const stateEl = document.getElementById('stateSelect');
+    const cityEl  = document.getElementById('citySelect');
+
+    // Populate states alphabetically
+    Object.keys(INDIA_CITIES).sort().forEach(state => {
+      const opt = document.createElement('option');
+      opt.value = state;
+      opt.textContent = state;
+      stateEl.appendChild(opt);
+    });
+
+    stateEl.addEventListener('change', () => {
+      const state = stateEl.value;
+      cityEl.innerHTML = '';
+      if (!state) {
+        cityEl.disabled = true;
+        const o = document.createElement('option');
+        o.value = ''; o.textContent = '— Select State first —';
+        cityEl.appendChild(o);
+        return;
+      }
+      const cities = INDIA_CITIES[state] || [];
+      cities.forEach((city, i) => {
+        const o = document.createElement('option');
+        o.value = city; o.textContent = city;
+        if (i === 0) o.selected = true;
+        cityEl.appendChild(o);
+      });
+      cityEl.disabled = false;
+    });
+  })();
+
+  // ── State ──────────────────────────────────────────────────────────────────
+  let selUsage    = null;
+  let selFuel     = null;
+  let selMustHave = new Set();
+
+  // ── Chip wiring ────────────────────────────────────────────────────────────
+  document.querySelectorAll('.chip-group').forEach(group => {
+    const mode = group.dataset.mode;
+    group.querySelectorAll('.sel-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const val = chip.dataset.value;
+        if (mode === 'single') {
+          group.querySelectorAll('.sel-chip').forEach(c => c.classList.remove('selected'));
+          chip.classList.add('selected');
+          if (group.dataset.group === 'usage')  selUsage = val;
+          if (group.dataset.group === 'fuel')   selFuel  = val;
+        } else {
+          chip.classList.toggle('selected');
+          if (chip.classList.contains('selected')) selMustHave.add(val);
+          else selMustHave.delete(val);
+        }
+      });
+    });
+  });
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
+  function findCars() {
+    const budget    = parseInt(document.getElementById('budgetInput').value, 10);
+    const stateEl   = document.getElementById('stateSelect');
+    const cityEl    = document.getElementById('citySelect');
+    const cityVal   = cityEl.value.trim();
+    const stateVal  = stateEl.value.trim();
+    const city      = cityVal && stateVal ? cityVal + ', ' + stateVal : (cityVal || stateVal || '');
+
+    if (!budget || budget < 100000) { alert('Please enter a valid budget (minimum ₹1,00,000).'); return; }
+    if (!city) { alert('Please select your state and city.'); return; }
+
+    const resultsEl = document.getElementById('budget-results');
+    resultsEl.style.display = 'block';
+    resultsEl.innerHTML = `<div class="loading-state"><div class="spinner"></div>Finding the best cars for your budget…</div>`;
+    resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    const btn = document.getElementById('findBtn');
+    btn.disabled = true; btn.textContent = 'Finding…';
+
+    fetch('/api/budget', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        budget,
+        city,
+        usage:      selUsage     || 'Daily city commute',
+        fuel:       selFuel      || 'No preference',
+        must_haves: [...selMustHave],
+      }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) throw new Error(data.error);
+      renderBudget(data);
+    })
+    .catch(err => {
+      resultsEl.innerHTML = `<div class="loading-state" style="color:#e94560;">Error: ${escHtml(err.message)}</div>`;
+    })
+    .finally(() => { btn.disabled = false; btn.innerHTML = 'Find My Cars &#8594;'; });
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+  function renderBudget(d) {
+    const recs = d.recommendations || [];
+
+    const carCards = recs.map(rec => {
+      const isTop   = rec.rank === 1;
+      const fitYes  = rec.fits_budget !== false;
+      return `
+        <div class="car-card">
+          <div class="car-card-top">
+            <span class="rank-badge ${isTop ? 'gold' : 'silver'}">#${escHtml(String(rec.rank))}</span>
+            <div class="car-card-name">${escHtml(rec.car_name || '—')}</div>
+          </div>
+          <div class="car-why">${escHtml(rec.why_this_car || '')}</div>
+          <div class="price-row">
+            <span class="price-ex">${escHtml(rec.ex_showroom || '')}</span>
+            <span class="price-onroad">${escHtml(rec.on_road_estimate || '')}</span>
+            <span class="price-fit ${fitYes ? 'yes' : 'no'}">${fitYes ? '&#10003; Fits budget' : '&#10007; Over budget'}</span>
+          </div>
+          ${rec.budget_remaining ? `<div class="budget-left">&#8377; remaining: ${escHtml(rec.budget_remaining)}</div>` : ''}
+          <div class="stats-row" style="margin-top:10px">
+            ${rec.real_mileage        ? `<span class="stat-pill">&#9981; ${escHtml(rec.real_mileage)}</span>` : ''}
+            ${rec.annual_maintenance  ? `<span class="stat-pill">&#128295; ${escHtml(rec.annual_maintenance)}/yr</span>` : ''}
+            ${rec.cartruth_score      ? `<span class="stat-pill">&#9733; ${escHtml(String(rec.cartruth_score))}/10</span>` : ''}
+          </div>
+          ${rec.best_variant ? `
+          <div class="variant-box" style="margin-top:12px">
+            <div class="variant-label">Buy this variant</div>
+            ${escHtml(rec.best_variant)}
+          </div>` : ''}
+          ${rec.one_concern ? `<div class="concern-row" style="margin-top:10px">${escHtml(rec.one_concern)}</div>` : ''}
+        </div>`;
+    }).join('');
+
+    const tipsHtml = (d.money_saving_tips || []).length ? `
+      <div class="tip-card green">
+        <div class="tip-card-header">Money Saving Tips</div>
+        ${d.money_saving_tips.map(t => `
+          <div class="tip-item">
+            <span class="tip-icon green">&#8594;</span>
+            <span>${escHtml(t)}</span>
+          </div>`).join('')}
+      </div>` : '';
+
+    const mistakesHtml = (d.avoid_these_mistakes || []).length ? `
+      <div class="tip-card red">
+        <div class="tip-card-header">Avoid These Mistakes</div>
+        ${d.avoid_these_mistakes.map(m => `
+          <div class="tip-item">
+            <span class="tip-icon red">&#10007;</span>
+            <span>${escHtml(m)}</span>
+          </div>`).join('')}
+      </div>` : '';
+
+    document.getElementById('budget-results').innerHTML = `
+      ${d.budget_analysis ? `<div class="budget-analysis">${escHtml(d.budget_analysis)}</div>` : ''}
+      ${carCards}
+      ${tipsHtml}
+      ${mistakesHtml}
+    `;
+  }
+</script>
+{% endblock %}
