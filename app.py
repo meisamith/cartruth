@@ -1,8 +1,7 @@
 import os
 import json
-import sqlite3
 import traceback
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
 import anthropic
@@ -12,55 +11,113 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret")
 
-DB_PATH = "cache.db"
-CACHE_TTL_DAYS = 7
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# ── DB helpers ────────────────────────────────────────────────────────────────
+# ── DB helpers — PostgreSQL in production, SQLite locally ─────────────────────
 
-def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS car_cache (
-            car_model TEXT PRIMARY KEY,
-            report_data TEXT,
-            created_at TIMESTAMP
+if DATABASE_URL:
+    import psycopg2
+
+    def get_db():
+        return psycopg2.connect(DATABASE_URL)
+
+    def init_db():
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute(
+            """CREATE TABLE IF NOT EXISTS car_cache (
+                   car_model   TEXT PRIMARY KEY,
+                   report_data TEXT,
+                   created_at  TIMESTAMP DEFAULT NOW()
+               )"""
         )
-        """
-    )
-    conn.commit()
-    conn.close()
+        conn.commit()
+        cur.close()
+        conn.close()
+
+    def get_cached_report(car_model: str):
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT report_data FROM car_cache WHERE car_model = %s",
+                (car_model,)
+            )
+            row = cur.fetchone()
+            cur.close()
+            conn.close()
+            if row:
+                return json.loads(row[0])
+        except Exception as e:
+            print("Cache read error:", e)
+        return None
+
+    def save_to_cache(car_model: str, report_data: dict):
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(
+                """INSERT INTO car_cache (car_model, report_data)
+                   VALUES (%s, %s)
+                   ON CONFLICT (car_model) DO UPDATE
+                   SET report_data = EXCLUDED.report_data,
+                       created_at  = NOW()""",
+                (car_model, json.dumps(report_data))
+            )
+            conn.commit()
+            cur.close()
+            conn.close()
+        except Exception as e:
+            print("Cache save error:", e)
+
+else:
+    import sqlite3
+
+    def get_db():
+        return sqlite3.connect("cache.db")
+
+    def init_db():
+        conn = get_db()
+        conn.execute(
+            """CREATE TABLE IF NOT EXISTS car_cache (
+                   car_model   TEXT PRIMARY KEY,
+                   report_data TEXT,
+                   created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+               )"""
+        )
+        conn.commit()
+        conn.close()
+
+    def get_cached_report(car_model: str):
+        try:
+            conn = get_db()
+            row = conn.execute(
+                "SELECT report_data FROM car_cache WHERE car_model = ?",
+                (car_model,)
+            ).fetchone()
+            conn.close()
+            if row:
+                return json.loads(row[0])
+        except Exception as e:
+            print("Cache read error:", e)
+        return None
+
+    def save_to_cache(car_model: str, report_data: dict):
+        try:
+            conn = get_db()
+            conn.execute(
+                """INSERT OR REPLACE INTO car_cache (car_model, report_data)
+                   VALUES (?, ?)""",
+                (car_model, json.dumps(report_data))
+            )
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print("Cache save error:", e)
 
 
-def get_cached_report(car_model: str):
-    """Return (report_dict, True) if a fresh cache hit, else (None, False)."""
-    conn = sqlite3.connect(DB_PATH)
-    row = conn.execute(
-        "SELECT report_data, created_at FROM car_cache WHERE car_model = ?",
-        (car_model,)
-    ).fetchone()
-    conn.close()
-    if row:
-        created_at = datetime.fromisoformat(row[1]).replace(tzinfo=timezone.utc)
-        if datetime.now(timezone.utc) - created_at < timedelta(days=CACHE_TTL_DAYS):
-            return json.loads(row[0]), True
-    return None, False
-
-
-def save_to_cache(car_model: str, report: dict):
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute(
-        """
-        INSERT INTO car_cache (car_model, report_data, created_at)
-        VALUES (?, ?, ?)
-        ON CONFLICT(car_model) DO UPDATE SET
-            report_data = excluded.report_data,
-            created_at  = excluded.created_at
-        """,
-        (car_model, json.dumps(report), datetime.now(timezone.utc).isoformat())
-    )
-    conn.commit()
-    conn.close()
+# Initialise DB table at startup
+init_db()
 
 
 # ── Claude report generator ───────────────────────────────────────────────────
@@ -127,22 +184,14 @@ def generate_report(car_name: str) -> dict:
     message = client.messages.create(
         model="claude-opus-4-6",
         max_tokens=4096,
-        messages=[
-            {
-                "role": "user",
-                "content": REPORT_PROMPT.format(car_name=car_name)
-            }
-        ]
+        messages=[{"role": "user", "content": REPORT_PROMPT.format(car_name=car_name)}]
     )
     raw = message.content[0].text.strip()
-
-    # Strip accidental code fences if Claude adds them
     if raw.startswith("```"):
         raw = raw.split("```")[1]
         if raw.startswith("json"):
             raw = raw[4:]
         raw = raw.strip()
-
     return json.loads(raw)
 
 
@@ -155,24 +204,19 @@ def index():
 
 @app.route("/report/<car_model>")
 def car_report(car_model):
-    # Normalise slug → display name, e.g. "maruti-swift" → "Maruti Swift"
     car_name = car_model.replace("-", " ").title()
 
     # 1. Cache lookup
-    report, from_cache = get_cached_report(car_model)
-    if from_cache:
+    report = get_cached_report(car_model)
+    if report:
         print(f"[CACHE HIT] {car_model}")
         report["from_cache"] = True
-        print("DEBUG REPORT:", report)
         return render_template("car_report.html", report=report)
 
     # 2. Generate via Claude
     try:
         print(f"[GENERATING] {car_name} via Claude...")
         report = generate_report(car_name)
-        print("DEBUG REPORT:", report)
-
-        # 3. Persist to cache (do not store from_cache flag)
         save_to_cache(car_model, report)
         report["from_cache"] = False
 
@@ -186,7 +230,7 @@ def car_report(car_model):
         traceback.print_exc()
         report = {"car_name": car_name, "error": str(e)}
 
-    return render_template("car_report.html", report=report, from_cache=False)
+    return render_template("car_report.html", report=report)
 
 
 @app.route("/compare")
@@ -218,7 +262,7 @@ def api_report():
 
 @app.post("/api/compare")
 def api_compare():
-    body = request.get_json(force=True)
+    body      = request.get_json(force=True)
     car1_name = body.get("car1", "").strip()
     car2_name = body.get("car2", "").strip()
     driving   = body.get("driving",  "Mix of city + highway")
@@ -232,20 +276,18 @@ def api_compare():
         return name.strip().lower().replace(" ", "-")
 
     try:
-        # Fetch or generate reports for both cars
-        car1_report, _ = get_cached_report(slug(car1_name))
+        car1_report = get_cached_report(slug(car1_name))
         if not car1_report:
             print(f"[COMPARE] Generating report for {car1_name}")
             car1_report = generate_report(car1_name)
             save_to_cache(slug(car1_name), car1_report)
 
-        car2_report, _ = get_cached_report(slug(car2_name))
+        car2_report = get_cached_report(slug(car2_name))
         if not car2_report:
             print(f"[COMPARE] Generating report for {car2_name}")
             car2_report = generate_report(car2_name)
             save_to_cache(slug(car2_name), car2_report)
 
-        # Generate the comparison verdict
         compare_prompt = f"""Compare these two cars for an Indian buyer with this profile:
 - Driving pattern: {driving}
 - Top priority: {priority}
@@ -289,8 +331,7 @@ Return ONLY this JSON (no markdown, no code fences):
                 raw = raw[4:]
             raw = raw.strip()
 
-        result = json.loads(raw)
-        return jsonify(result)
+        return jsonify(json.loads(raw))
 
     except json.JSONDecodeError as e:
         print("ERROR (compare JSON parse):", e)
@@ -310,10 +351,10 @@ def wizard():
 
 @app.post("/api/wizard")
 def api_wizard():
-    body     = request.get_json(force=True)
-    car      = body.get("car", "").strip()
-    year     = body.get("year", "").strip()
-    answers  = body.get("answers", [])
+    body       = request.get_json(force=True)
+    car        = body.get("car", "").strip()
+    year       = body.get("year", "").strip()
+    answers    = body.get("answers", [])
     total_risk = body.get("total_risk", 0)
 
     if not car:
@@ -421,14 +462,19 @@ Return ONLY this JSON (no markdown, no code fences):
         raw = msg.content[0].text.strip()
         if raw.startswith("```"):
             raw = raw.split("```")[1]
-            if raw.startswith("json"): raw = raw[4:]
+            if raw.startswith("json"):
+                raw = raw[4:]
             raw = raw.strip()
         return jsonify(json.loads(raw))
+
     except json.JSONDecodeError as e:
-        print("ERROR (budget JSON):", e); traceback.print_exc()
+        print("ERROR (budget JSON):", e)
+        traceback.print_exc()
         return jsonify({"error": "Could not parse AI response. Please try again."}), 500
+
     except Exception as e:
-        print("ERROR (budget):", e); traceback.print_exc()
+        print("ERROR (budget):", e)
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 
@@ -477,14 +523,19 @@ Give an honest price verdict. Return ONLY this JSON (no markdown, no code fences
         raw = msg.content[0].text.strip()
         if raw.startswith("```"):
             raw = raw.split("```")[1]
-            if raw.startswith("json"): raw = raw[4:]
+            if raw.startswith("json"):
+                raw = raw[4:]
             raw = raw.strip()
         return jsonify(json.loads(raw))
+
     except json.JSONDecodeError as e:
-        print("ERROR (fairprice JSON):", e); traceback.print_exc()
+        print("ERROR (fairprice JSON):", e)
+        traceback.print_exc()
         return jsonify({"error": "Could not parse AI response. Please try again."}), 500
+
     except Exception as e:
-        print("ERROR (fairprice):", e); traceback.print_exc()
+        print("ERROR (fairprice):", e)
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 
