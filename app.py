@@ -182,7 +182,7 @@ Rules:
 def generate_report(car_name: str) -> dict:
     client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
     message = client.messages.create(
-        model="claude-opus-4-6",
+        model="claude-haiku-4-5-20251001",
         max_tokens=4096,
         messages=[{"role": "user", "content": REPORT_PROMPT.format(car_name=car_name)}]
     )
@@ -319,7 +319,7 @@ Return ONLY this JSON (no markdown, no code fences):
 
         client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         message = client.messages.create(
-            model="claude-opus-4-6",
+            model="claude-haiku-4-5-20251001",
             max_tokens=2048,
             system="You are CarTruth, an honest Indian car comparison expert. Respond in valid JSON only. No markdown.",
             messages=[{"role": "user", "content": compare_prompt}]
@@ -380,7 +380,7 @@ Give an honest verdict. Return ONLY this JSON (no markdown, no code fences):
     try:
         client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         message = client.messages.create(
-            model="claude-opus-4-6",
+            model="claude-haiku-4-5-20251001",
             max_tokens=1024,
             system="You are CarTruth, a brutally honest used car inspector for Indian buyers. Respond in valid JSON only. No markdown.",
             messages=[{"role": "user", "content": prompt}]
@@ -454,7 +454,7 @@ Return ONLY this JSON (no markdown, no code fences):
     try:
         client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         msg = client.messages.create(
-            model="claude-opus-4-6",
+            model="claude-haiku-4-5-20251001",
             max_tokens=2048,
             system="You are CarTruth, an honest Indian car buying advisor. Respond in valid JSON only. No markdown.",
             messages=[{"role": "user", "content": prompt}]
@@ -515,7 +515,7 @@ Give an honest price verdict. Return ONLY this JSON (no markdown, no code fences
     try:
         client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         msg = client.messages.create(
-            model="claude-opus-4-6",
+            model="claude-haiku-4-5-20251001",
             max_tokens=1024,
             system="You are CarTruth, an expert in Indian used car valuations. Respond in valid JSON only. No markdown.",
             messages=[{"role": "user", "content": prompt}]
