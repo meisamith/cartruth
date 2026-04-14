@@ -366,18 +366,30 @@ def wizard():
 
 @app.post("/api/wizard")
 def api_wizard():
-    body       = request.get_json(force=True)
-    car        = body.get("car", "").strip()
-    year       = body.get("year", "").strip()
-    answers    = body.get("answers", [])
-    total_risk = body.get("total_risk", 0)
+    body         = request.get_json(force=True)
+    car          = body.get("car", "").strip()
+    year         = body.get("year", "").strip()
+    answers      = body.get("answers", [])
+    total_risk   = body.get("total_risk", 0)
+    asking_price = body.get("asking_price", "").strip()
 
     if not car:
         return jsonify({"error": "Car name is required."}), 400
 
+    price_section = ""
+    price_fields  = ""
+    if asking_price:
+        price_section = f"\nThe seller is asking ₹{asking_price} for this {year} {car}."
+        price_fields  = """
+  "price_verdict": "GOOD DEAL or FAIR or OVERPRICED",
+  "asking_price": "the seller's asking price",
+  "negotiate_to": "target price to negotiate to in INR (number only, no commas)",
+  "walk_away_above": "maximum acceptable price in INR (number only, no commas)",
+  "price_reasoning": "2 sentences explaining the price verdict based on the car condition and market","""
+
     prompt = f"""A buyer just inspected a {year} {car} and answered these inspection questions:
 {json.dumps(answers, indent=2)}
-Total risk score: {total_risk}/45
+Total risk score: {total_risk}/45{price_section}
 
 Give an honest verdict. Return ONLY this JSON (no markdown, no code fences):
 {{
@@ -389,7 +401,7 @@ Give an honest verdict. Return ONLY this JSON (no markdown, no code fences):
   "negotiate_points": ["If NEGOTIATE — specific things to push on, else empty array"],
   "must_check_before_buying": ["2-3 things to get checked by a mechanic before finalizing"],
   "estimated_immediate_costs": "What they will likely spend in first 3 months based on their answers",
-  "fair_price_reduction": "How much to negotiate down from asking price in INR based on findings"
+  "fair_price_reduction": "How much to negotiate down from asking price in INR based on findings"{price_fields}
 }}"""
 
     try:

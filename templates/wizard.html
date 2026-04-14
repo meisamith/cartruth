@@ -554,6 +554,112 @@
   line-height: 1.2;
 }
 
+/* ── Step: price check ───────────────────────────── */
+#step-price { display: none; padding-bottom: 40px; }
+
+.price-check-card {
+  background: #111111;
+  border: 1px solid #222222;
+  border-radius: 20px;
+  padding: 32px 20px 24px;
+  margin-bottom: 14px;
+  animation: slideUp 0.3s ease;
+}
+
+.price-step-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 10px;
+}
+
+.price-step-heading {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+
+.price-step-sub {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.price-note {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.35);
+  line-height: 1.5;
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 10px;
+  border: 1px solid #1e1e1e;
+}
+
+/* Price verdict card */
+.price-verdict-card {
+  background: #111111;
+  border: 1px solid #222222;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.price-verdict-header {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 14px;
+}
+
+.price-verdict-badge {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 100px;
+  padding: 6px 16px;
+  margin-bottom: 16px;
+}
+
+.price-verdict-badge.good-deal  { background: rgba(72,187,120,0.15); color: #48bb78; }
+.price-verdict-badge.fair       { background: rgba(251,191,36,0.15); color: #fbbf24; }
+.price-verdict-badge.overpriced { background: rgba(233,69,96,0.15);  color: #e94560; }
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #1e1e1e;
+  font-size: 13px;
+}
+
+.price-row:last-of-type { border-bottom: none; }
+
+.price-row-label {
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 500;
+}
+
+.price-row-value { font-weight: 700; }
+.price-row-value.green { color: #48bb78; }
+.price-row-value.red   { color: #e94560; }
+
+.price-reasoning {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.6;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #1e1e1e;
+}
+
 /* Start over */
 .start-over-btn {
   width: 100%;
@@ -640,6 +746,43 @@
   <div class="q-nav" id="qNav">
     <button class="back-btn" id="backBtn" onclick="goBack()">&#8592; Back</button>
     <button class="next-btn" id="nextBtn" onclick="goNext()">Next &#8594;</button>
+  </div>
+</div>
+
+<!-- Step 11: Price check -->
+<div id="step-price">
+  <div class="price-check-card">
+    <div class="price-step-label">Step 11 of 11</div>
+    <h2 class="price-step-heading">Now let's check the price</h2>
+    <p class="price-step-sub">This helps us give you a complete verdict</p>
+
+    <div class="field-label">What is the seller asking? (₹)</div>
+    <div class="field-wrap">
+      <input
+        type="number"
+        id="asking-price"
+        class="wiz-input"
+        placeholder="e.g. 650000"
+        inputmode="numeric"
+      >
+    </div>
+
+    <div class="field-label">What year is this car?</div>
+    <div class="field-wrap">
+      <input
+        type="number"
+        id="price-year"
+        class="wiz-input"
+        readonly
+      >
+    </div>
+
+    <div class="price-note">We'll tell you if the price is fair, what to negotiate to, and when to walk away.</div>
+  </div>
+
+  <div class="q-nav">
+    <button class="back-btn" onclick="backFromPrice()">&#8592; Back</button>
+    <button class="next-btn visible" onclick="submitWizard()">Get Full Verdict &#8594;</button>
   </div>
 </div>
 
@@ -914,18 +1057,30 @@ function goNext() {
     currentQ++;
     renderQuestion();
   } else {
-    submitWizard();
+    // After Q10 — show price check step
+    const year = document.getElementById('carYearInput').value.trim();
+    document.getElementById('price-year').value = year;
+    hide('step-questions');
+    show('step-price');
+    document.getElementById('step-price').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+}
+
+function backFromPrice() {
+  hide('step-price');
+  show('step-questions');
+  renderQuestion();
 }
 
 // ── Submit ────────────────────────────────────────────────────────────────
 function submitWizard() {
-  const car    = selectedCar || document.getElementById('carNameInput').value.trim();
-  const year   = document.getElementById('carYearInput').value.trim();
-  const filled = answers.filter(Boolean);
-  const total  = filled.reduce((sum, a) => sum + a.risk, 0);
+  const car         = selectedCar || document.getElementById('carNameInput').value.trim();
+  const year        = document.getElementById('carYearInput').value.trim();
+  const askingPrice = document.getElementById('asking-price').value.trim();
+  const filled      = answers.filter(Boolean);
+  const total       = filled.reduce((sum, a) => sum + a.risk, 0);
 
-  hide('step-questions');
+  hide('step-price');
   const resultsEl = document.getElementById('step-results');
   resultsEl.style.display = 'block';
   resultsEl.innerHTML = `
@@ -935,10 +1090,13 @@ function submitWizard() {
     </div>`;
   resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
+  const payload = { car, year, answers: filled, total_risk: total };
+  if (askingPrice) payload.asking_price = askingPrice;
+
   fetch('/api/wizard', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ car, year, answers: filled, total_risk: total }),
+    body: JSON.stringify(payload),
   })
   .then(r => r.json())
   .then(data => {
@@ -1029,6 +1187,31 @@ function renderVerdict(d, car, year, totalRisk) {
       <div class="reduction-amount">${escHtml(d.fair_price_reduction)}</div>
     </div>` : '';
 
+  // Price verdict card (only if asking_price was provided and API returned price data)
+  let priceHtml = '';
+  if (d.price_verdict && d.asking_price) {
+    const pv = (d.price_verdict || '').toUpperCase();
+    const pvClass = pv === 'GOOD DEAL' ? 'good-deal' : pv === 'OVERPRICED' ? 'overpriced' : 'fair';
+    priceHtml = `
+      <div class="price-verdict-card">
+        <div class="price-verdict-header">Price Check</div>
+        <span class="price-verdict-badge ${pvClass}">${escHtml(d.price_verdict)}</span>
+        <div class="price-row">
+          <span class="price-row-label">Asking price</span>
+          <span class="price-row-value">₹${escHtml(String(d.asking_price))}</span>
+        </div>
+        <div class="price-row">
+          <span class="price-row-label">Negotiate to</span>
+          <span class="price-row-value green">₹${escHtml(String(d.negotiate_to || '—'))}</span>
+        </div>
+        <div class="price-row">
+          <span class="price-row-label">Walk away above</span>
+          <span class="price-row-value red">₹${escHtml(String(d.walk_away_above || '—'))}</span>
+        </div>
+        ${d.price_reasoning ? `<div class="price-reasoning">${escHtml(d.price_reasoning)}</div>` : ''}
+      </div>`;
+  }
+
   const html = `
     <div class="verdict-banner ${vClass}">
       <div class="verdict-car-label">${escHtml(year)} ${escHtml(car)}</div>
@@ -1046,6 +1229,7 @@ function renderVerdict(d, car, year, totalRisk) {
     ${mechHtml}
     ${costsHtml}
     ${reductionHtml}
+    ${priceHtml}
 
     <button class="start-over-btn" onclick="resetWizard()">Start Over</button>
   `;
@@ -1058,11 +1242,14 @@ function resetWizard() {
   selectedCar = null;
   answers = new Array(QUESTIONS.length).fill(null);
   currentQ = 0;
-  document.getElementById('carNameInput').value = '';
+  document.getElementById('carNameInput').value  = '';
   document.getElementById('carYearInput').value  = '';
+  document.getElementById('asking-price').value  = '';
+  document.getElementById('price-year').value    = '';
   document.getElementById('step-results').style.display = 'none';
   document.getElementById('step-results').innerHTML = '';
   hide('step-questions');
+  hide('step-price');
   show('step-car');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
