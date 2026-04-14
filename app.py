@@ -13,6 +13,29 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret")
 
 ai_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"), timeout=60.0)
 
+
+def clean_json_response(raw):
+    """Strip markdown fences and extract pure JSON from Claude response"""
+    raw = raw.strip()
+    # Remove ```json ... ``` or ``` ... ```
+    if '```' in raw:
+        parts = raw.split('```')
+        for part in parts:
+            part = part.strip()
+            if part.startswith('json'):
+                part = part[4:].strip()
+            try:
+                json.loads(part)
+                return part
+            except:
+                continue
+    # Try to find JSON object directly
+    start = raw.find('{')
+    end = raw.rfind('}')
+    if start != -1 and end != -1:
+        return raw[start:end+1]
+    return raw
+
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 # ── DB helpers — PostgreSQL in production, SQLite locally ─────────────────────
@@ -188,12 +211,7 @@ def generate_report(car_name: str) -> dict:
         max_tokens=4096,
         messages=[{"role": "user", "content": REPORT_PROMPT.format(car_name=car_name)}]
     )
-    raw = message.content[0].text.strip()
-    if raw.startswith("```"):
-        raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
-        raw = raw.strip()
+    raw = clean_json_response(message.content[0].text)
     return json.loads(raw)
 
 
@@ -327,13 +345,7 @@ Return ONLY this JSON (no markdown, no code fences):
             system="You are CarTruth, an honest Indian car comparison expert. Respond in valid JSON only. No markdown.",
             messages=[{"role": "user", "content": compare_prompt}]
         )
-        raw = message.content[0].text.strip()
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-            raw = raw.strip()
-
+        raw = clean_json_response(message.content[0].text)
         return jsonify(json.loads(raw))
 
     except json.JSONDecodeError as e:
@@ -388,12 +400,7 @@ Give an honest verdict. Return ONLY this JSON (no markdown, no code fences):
             system="You are CarTruth, a brutally honest used car inspector for Indian buyers. Respond in valid JSON only. No markdown.",
             messages=[{"role": "user", "content": prompt}]
         )
-        raw = message.content[0].text.strip()
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-            raw = raw.strip()
+        raw = clean_json_response(message.content[0].text)
         return jsonify(json.loads(raw))
 
     except json.JSONDecodeError as e:
@@ -462,12 +469,7 @@ Return ONLY this JSON (no markdown, no code fences):
             system="You are CarTruth, an honest Indian car buying advisor. Respond in valid JSON only. No markdown.",
             messages=[{"role": "user", "content": prompt}]
         )
-        raw = msg.content[0].text.strip()
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-            raw = raw.strip()
+        raw = clean_json_response(msg.content[0].text)
         return jsonify(json.loads(raw))
 
     except json.JSONDecodeError as e:
@@ -523,12 +525,7 @@ Give an honest price verdict. Return ONLY this JSON (no markdown, no code fences
             system="You are CarTruth, an expert in Indian used car valuations. Respond in valid JSON only. No markdown.",
             messages=[{"role": "user", "content": prompt}]
         )
-        raw = msg.content[0].text.strip()
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-            raw = raw.strip()
+        raw = clean_json_response(msg.content[0].text)
         return jsonify(json.loads(raw))
 
     except json.JSONDecodeError as e:
