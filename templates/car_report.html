@@ -898,55 +898,5 @@
       icon.textContent = '\u2212';
     }
   }
-
-  // ── GSAP Animations (desktop only) ────────────────────────────────────────
-  if (window.innerWidth >= 768 && typeof gsap !== 'undefined') {
-    gsap.registerPlugin(ScrollTrigger);
-
-    // Top bar entrance
-    gsap.from('.top-bar', { y: 30, opacity: 0, duration: 0.6, ease: 'power2.out', delay: 0.1 });
-
-    // Each report card animates in on scroll
-    document.querySelectorAll('.rcard, .emergency-card').forEach((card, i) => {
-      gsap.from(card, {
-        scrollTrigger: { trigger: card, start: 'top 85%', once: true },
-        y: 50, opacity: 0, duration: 0.6, ease: 'power2.out'
-      });
-    });
-
-    // Verdict card entrance
-    gsap.from('.verdict-card', {
-      scrollTrigger: { trigger: '.verdict-card', start: 'top 80%', once: true },
-      y: 40, opacity: 0, duration: 0.7, ease: 'power3.out'
-    });
-
-    // Verdict number count-up when scrolled into view
-    const verdictNumEl = document.querySelector('.verdict-number');
-    if (verdictNumEl) {
-      const targetRaw  = verdictNumEl.textContent.trim();
-      const targetVal  = parseFloat(targetRaw) || 0;
-      let triggered = false;
-
-      ScrollTrigger.create({
-        trigger: '.verdict-card',
-        start: 'top 80%',
-        once: true,
-        onEnter: () => {
-          if (triggered) return;
-          triggered = true;
-          const duration = 1000;
-          const step     = targetVal / (duration / 16);
-          let current    = 0;
-          const timer = setInterval(() => {
-            current = Math.min(current + step, targetVal);
-            verdictNumEl.textContent = current >= targetVal
-              ? targetVal
-              : current.toFixed(1).replace(/\.0$/, '');
-            if (current >= targetVal) clearInterval(timer);
-          }, 16);
-        }
-      });
-    }
-  }
 </script>
 {% endblock %}

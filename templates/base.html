@@ -33,10 +33,17 @@
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      animation: fadeIn 0.25s ease;
+      opacity: 1;
     }
 
     h1, h2, h3 {
       font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
     /* ── Scrollbar ──────────────────────────────────── */
@@ -86,50 +93,9 @@
     }
 
     {% block extra_styles %}{% endblock %}
-
-    /* ── Noise overlay ──────────────────────────────── */
-    .noise-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      pointer-events: none;
-      z-index: 1;
-      opacity: 0.03;
-      background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='1'/></svg>");
-      background-repeat: repeat;
-    }
-
-    /* ── Custom cursor ──────────────────────────────── */
-    @media (pointer: fine) {
-      body { cursor: none; }
-      * { cursor: none !important; }
-    }
-
-    /* ── Loading screen ─────────────────────────────── */
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.7; transform: scale(0.97); }
-    }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-
-  <!-- Custom Cursor (desktop only) -->
-  <div id="cursor" style="width:12px;height:12px;background:#e94560;border-radius:50%;position:fixed;pointer-events:none;z-index:99999;mix-blend-mode:difference;left:0;top:0;"></div>
-  <div id="cursor-follower" style="width:36px;height:36px;border:1px solid rgba(233,69,96,0.5);border-radius:50%;position:fixed;pointer-events:none;z-index:99998;left:0;top:0;"></div>
-
-  <!-- Loading Screen -->
-  <div id="loader" style="position:fixed;top:0;left:0;right:0;bottom:0;background:#000000;z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-    <img src="/static/icons/logo.png" style="width:120px;height:auto;animation:pulse 1s ease infinite;" alt="CarTruth">
-    <div style="width:200px;height:2px;background:#111111;border-radius:100px;margin-top:32px;overflow:hidden;">
-      <div id="loader-bar" style="height:100%;width:0%;background:#e94560;border-radius:100px;transition:width 1.2s ease;"></div>
-    </div>
-  </div>
-
-  <!-- Noise Texture Overlay -->
-  <div class="noise-overlay"></div>
 
   <nav class="navbar">
     <a href="/" class="nav-logo-link">
@@ -145,7 +111,6 @@
   </div>
 
   <script>
-    // ── Service Worker ─────────────────────────────────────────────────────────
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/static/sw.js')
@@ -154,71 +119,16 @@
       });
     }
 
-    // ── Loading Screen ─────────────────────────────────────────────────────────
-    window.addEventListener('load', () => {
-      const loaderBar = document.getElementById('loader-bar');
-      if (loaderBar) loaderBar.style.width = '100%';
-      setTimeout(() => {
-        gsap.to('#loader', { opacity: 0, duration: 0.5, onComplete: () => {
-          const loader = document.getElementById('loader');
-          if (loader) loader.style.display = 'none';
-        }});
-      }, 1500);
-    });
-
-    // ── Desktop-only enhancements ──────────────────────────────────────────────
-    const _isMobile = window.innerWidth < 768;
-
-    if (!_isMobile) {
-      // Page entrance animation
-      gsap.from('body', { opacity: 0, y: 20, duration: 0.4, ease: 'power2.out', delay: 0.05 });
-
-      // Custom cursor movement
-      document.addEventListener('mousemove', e => {
-        gsap.to('#cursor',          { x: e.clientX - 6,  y: e.clientY - 6,  duration: 0.1 });
-        gsap.to('#cursor-follower', { x: e.clientX - 18, y: e.clientY - 18, duration: 0.3 });
-      });
-
-      // Cursor scale on interactive elements
-      function bindCursorHover() {
-        document.querySelectorAll('button, a, input, .chip').forEach(el => {
-          el.addEventListener('mouseenter', () => {
-            gsap.to('#cursor',          { scale: 2.5, duration: 0.3 });
-            gsap.to('#cursor-follower', { scale: 1.5, opacity: 0, duration: 0.3 });
-          });
-          el.addEventListener('mouseleave', () => {
-            gsap.to('#cursor',          { scale: 1, duration: 0.3 });
-            gsap.to('#cursor-follower', { scale: 1, opacity: 1, duration: 0.3 });
-          });
-        });
+    // Page-out fade on internal link clicks
+    document.addEventListener('click', e => {
+      const link = e.target.closest('a[href]');
+      if (!link) return;
+      const href = link.getAttribute('href');
+      if (href && href.startsWith('/') && !href.startsWith('//')) {
+        document.body.style.opacity = '0';
+        document.body.style.transition = 'opacity 0.15s ease';
       }
-      bindCursorHover();
-
-      // Page exit transition
-      document.addEventListener('click', e => {
-        const link = e.target.closest('a[href]');
-        if (!link) return;
-        const href = link.getAttribute('href');
-        if (href && href.startsWith('/') && !href.startsWith('//')) {
-          e.preventDefault();
-          gsap.to('body', { opacity: 0, y: -20, duration: 0.3, onComplete: () => {
-            window.location.href = href;
-          }});
-        }
-      });
-
-    } else {
-      // Mobile page-out fallback
-      document.addEventListener('click', e => {
-        const link = e.target.closest('a[href]');
-        if (!link) return;
-        const href = link.getAttribute('href');
-        if (href && href.startsWith('/') && !href.startsWith('//')) {
-          document.body.style.opacity = '0';
-          document.body.style.transition = 'opacity 0.15s ease';
-        }
-      });
-    }
+    });
   </script>
   {% block extra_scripts %}{% endblock %}
 
