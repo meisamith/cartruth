@@ -4,26 +4,48 @@
 
 {% block extra_styles %}
 
+/* ── Full-width page override ─────────────────── */
+.page {
+  max-width: 100%;
+  padding: 0;
+}
+
 /* ── Hero ───────────────────────────────────────── */
 .hero {
-  padding: 56px 0 40px;
-  background: #000000;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 40px 60px;
+  text-align: center;
+  background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(233,69,96,0.06), transparent), #000000;
   position: relative;
 }
 
-.hero-glow {
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.3; transform: translateX(-50%) scale(1); }
+  50%       { opacity: 0.5; transform: translateX(-50%) scale(1.05); }
+}
+
+.hero::before {
+  content: '';
   position: absolute;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(233,69,96,0.06) 0%, transparent 70%);
-  top: -100px;
+  top: -200px;
   left: 50%;
   transform: translateX(-50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(233,69,96,0.07) 0%, transparent 70%);
+  animation: pulse-glow 4s ease infinite;
   pointer-events: none;
   z-index: 0;
 }
 
-.hero > *:not(.hero-glow) {
+.hero-glow { display: none; }
+
+.hero > * {
   position: relative;
   z-index: 1;
 }
@@ -43,25 +65,29 @@
 }
 
 .hero h1 {
-  font-size: 32px;
+  font-size: clamp(32px, 5vw, 72px);
   font-weight: 800;
-  letter-spacing: -1px;
-  line-height: 1.2;
-  margin-bottom: 14px;
+  letter-spacing: -2px;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  max-width: 800px;
 }
 
 .hero-sub {
   font-size: 14px;
   color: rgba(255, 255, 255, 0.45);
   line-height: 1.6;
-  margin-bottom: 28px;
+  margin-bottom: 32px;
+  max-width: 500px;
 }
 
 /* ── Search ─────────────────────────────────────── */
 .search-wrap {
   position: relative;
   z-index: 1000;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
+  max-width: 600px;
+  width: 100%;
 }
 
 .search-input {
@@ -176,10 +202,14 @@
 }
 
 /* ── Quick picks ─────────────────────────────────── */
-.chips {
+.chips-wrap {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto 24px;
 }
 
 .chip {
@@ -207,13 +237,24 @@
   transform: scale(0.95);
 }
 
+/* ── Features grid (Compare / Wizard / Budget / Fair Price) ── */
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  max-width: 600px;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  margin-top: 0;
+}
+
 /* ── Feature / tool links ────────────────────────── */
 .compare-link {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  margin-top: 10px;
   padding: 18px 20px;
   background: #111111;
   border: 1px solid #222222;
@@ -248,7 +289,9 @@
 
 /* ── Stats strip ─────────────────────────────────── */
 .stats {
-  margin-top: 32px;
+  max-width: 600px;
+  width: calc(100% - 40px);
+  margin: 40px auto 32px;
   border-radius: 14px;
   overflow: hidden;
   background: #000000;
@@ -283,11 +326,123 @@
 
 /* ── Feature cards ───────────────────────────────── */
 .features {
-  margin-top: 32px;
+  max-width: 600px;
+  width: calc(100% - 40px);
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding-bottom: 48px;
+}
+
+/* ── Ticker ──────────────────────────────────────── */
+.ticker-wrap {
+  width: 100%;
+  overflow: hidden;
+  border-top: 1px solid #1a1a1a;
+  border-bottom: 1px solid #1a1a1a;
+  padding: 12px 0;
+  margin: 32px 0;
+  background: #050505;
+}
+
+.ticker {
+  display: flex;
+  gap: 32px;
+  white-space: nowrap;
+  animation: ticker 20s linear infinite;
+}
+
+.ticker span {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.ticker-dot {
+  color: #e94560 !important;
+}
+
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ── Truth section ───────────────────────────────── */
+.truth-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto 48px;
+  padding: 0 20px;
+}
+
+.truth-card {
+  background: #0a0a0a;
+  border: 1px solid #1a1a1a;
+  border-radius: 16px;
+  padding: 24px 20px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.truth-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #e94560, transparent);
+}
+
+.truth-card:hover {
+  border-color: #2a2a2a;
+  transform: translateY(-3px);
+}
+
+.truth-eyebrow {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #e94560;
+  font-weight: 700;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.truth-text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.6);
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.truth-highlight { color: #ffffff; font-weight: 600; }
+.truth-bad       { color: #e94560; font-weight: 700; }
+.truth-good      { color: #48bb78; font-weight: 700; }
+
+/* ── Mobile ──────────────────────────────────────── */
+@media (max-width: 600px) {
+  .hero {
+    min-height: auto;
+    padding: 60px 20px 40px;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .truth-section {
+    grid-template-columns: 1fr;
+  }
 }
 
 .feature-card {
@@ -377,22 +532,87 @@
     <div class="ac-dropdown" id="acDropdown" role="listbox"></div>
   </form>
 
-  <div class="chips" style="position:relative; z-index:1;">
+  <div class="chips-wrap">
     <button class="chip" onclick="goToReport('Maruti Swift')">Maruti Swift</button>
     <button class="chip" onclick="goToReport('Hyundai Creta')">Hyundai Creta</button>
     <button class="chip" onclick="goToReport('Tata Nexon')">Tata Nexon</button>
     <button class="chip" onclick="goToReport('Honda City')">Honda City</button>
     <button class="chip" onclick="goToReport('Maruti Ertiga')">Maruti Ertiga</button>
     <button class="chip" onclick="goToReport('Toyota Innova Crysta')">Toyota Innova Crysta</button>
+    <button class="chip" onclick="goToReport('Tata Harrier')">Tata Harrier</button>
+    <button class="chip" onclick="goToReport('Kia Seltos')">Kia Seltos</button>
+    <button class="chip" onclick="goToReport('Mahindra Scorpio N')">Mahindra Scorpio N</button>
+    <button class="chip" onclick="goToReport('Mahindra Thar')">Mahindra Thar</button>
   </div>
 
-  <div style="position:relative; z-index:1;">
-  <a href="/compare"   class="compare-link"><span>Compare two cars</span><span class="link-arrow">&#8594;</span></a>
-  <a href="/wizard"    class="compare-link"><span>Used Car Wizard</span><span class="link-arrow">&#8594;</span></a>
-  <a href="/budget"    class="compare-link"><span>Budget Calculator</span><span class="link-arrow">&#8594;</span></a>
-  <a href="/fairprice" class="compare-link"><span>Fair Price Checker</span><span class="link-arrow">&#8594;</span></a>
+  <div class="features-grid">
+    <a href="/compare"   class="compare-link"><span>Compare two cars</span><span class="link-arrow">&#8594;</span></a>
+    <a href="/wizard"    class="compare-link"><span>Used Car Wizard</span><span class="link-arrow">&#8594;</span></a>
+    <a href="/budget"    class="compare-link"><span>Budget Calculator</span><span class="link-arrow">&#8594;</span></a>
+    <a href="/fairprice" class="compare-link"><span>Fair Price Checker</span><span class="link-arrow">&#8594;</span></a>
   </div>
 </section>
+
+<!-- Ticker -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span>Real Mileage Data</span>
+    <span class="ticker-dot">•</span>
+    <span>True Ownership Cost</span>
+    <span class="ticker-dot">•</span>
+    <span>Used Car Inspection</span>
+    <span class="ticker-dot">•</span>
+    <span>Fair Price Check</span>
+    <span class="ticker-dot">•</span>
+    <span>Budget Calculator</span>
+    <span class="ticker-dot">•</span>
+    <span>Compare Any Two Cars</span>
+    <span class="ticker-dot">•</span>
+    <span>Real Mileage Data</span>
+    <span class="ticker-dot">•</span>
+    <span>True Ownership Cost</span>
+    <span class="ticker-dot">•</span>
+    <span>Used Car Inspection</span>
+    <span class="ticker-dot">•</span>
+    <span>Fair Price Check</span>
+    <span class="ticker-dot">•</span>
+  </div>
+</div>
+
+<!-- Truth section -->
+<div class="truth-section">
+
+  <div class="truth-card">
+    <span class="truth-eyebrow">THE MILEAGE LIE</span>
+    <p class="truth-text">
+      Company says <span class="truth-highlight">23 km/l.</span>
+      Real owners get <span class="truth-bad">15 km/l.</span>
+      Every. Single. Time.
+    </p>
+  </div>
+
+  <div class="truth-card">
+    <span class="truth-eyebrow">THE USED CAR TRAP</span>
+    <p class="truth-text">
+      The seller paid <span class="truth-highlight">₹8.5L.</span>
+      Asks you <span class="truth-bad">₹7.2L.</span>
+      Actual worth? <span class="truth-good">₹5.8L.</span>
+      CarTruth tells you before you sign.
+    </p>
+  </div>
+
+  <div class="truth-card">
+    <span class="truth-eyebrow">THE SERVICE BILL SHOCK</span>
+    <p class="truth-text">
+      Authorized service center:
+      <span class="truth-bad">₹12,000.</span>
+      Trusted local mechanic:
+      <span class="truth-good">₹4,500.</span>
+      Same job. Same parts.
+    </p>
+  </div>
+
+</div>
 
 <!-- Section 2: Stats strip -->
 <div class="stats">
@@ -647,5 +867,42 @@
   document.getElementById('install-close').addEventListener('click', () => {
     document.getElementById('install-banner').style.display = 'none';
   });
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+// Safety: ensure nothing stays invisible if GSAP fails mid-animation
+document.querySelectorAll('.chip, .compare-link, .feature-card, .stat-num').forEach(el => {
+  el.style.opacity = '1';
+});
+
+// Hero headline fades up on load
+gsap.from('.hero h1', {y:40, opacity:0, duration:1, ease:'power3.out'});
+gsap.from('.hero-sub', {y:30, opacity:0, duration:1, delay:0.2, ease:'power3.out'});
+gsap.from('.search-wrap', {y:30, opacity:0, duration:1, delay:0.4, ease:'power3.out'});
+gsap.from('.chip', {y:20, opacity:0, duration:0.5, delay:0.6, stagger:0.05, ease:'power2.out'});
+gsap.from('.compare-link', {y:20, opacity:0, duration:0.5, delay:0.8, stagger:0.07, ease:'power2.out'});
+
+// Stats fade in
+gsap.from('.stat-num', {
+  scrollTrigger: {trigger: '.stat-num', start: 'top 85%'},
+  opacity: 0,
+  y: 20,
+  duration: 0.6,
+  stagger: 0.1
+});
+
+// Feature cards fade in
+gsap.from('.feature-card', {
+  scrollTrigger: {trigger: '.feature-card', start: 'top 85%'},
+  y: 40,
+  opacity: 0,
+  duration: 0.6,
+  stagger: 0.15,
+  ease: 'power2.out'
+});
 </script>
 {% endblock %}
