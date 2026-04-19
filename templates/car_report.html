@@ -581,9 +581,142 @@
   margin-top: 12px;
 }
 
+/* ── Skeleton loader ─────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -1000px 0; }
+  100% { background-position:  1000px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #111111 25%,
+    #1a1a1a 50%,
+    #111111 75%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+  border-radius: 8px;
+}
+
+.skeleton-title  { height: 36px; width: 60%; margin-bottom: 12px; }
+
+.skeleton-badge  {
+  height: 24px; width: 100px; border-radius: 100px;
+  display: inline-block; margin-right: 8px;
+}
+
+.skeleton-card {
+  background: #0a0a0a;
+  border: 1px solid #1a1a1a;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.skeleton-label     { height: 12px; width: 30%; margin-bottom: 20px; }
+.skeleton-text      { height: 14px; width: 100%; margin-bottom: 10px; }
+.skeleton-text-short{ height: 14px; width: 60%;  margin-bottom: 10px; }
+
+.skeleton-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.skeleton-row-left  { height: 14px; width: 40%; }
+.skeleton-row-right { height: 14px; width: 25%; }
+
+.skeleton-score {
+  height: 72px; width: 120px;
+  border-radius: 12px;
+  margin: 0 auto 16px;
+}
+
 {% endblock %}
 
 {% block content %}
+
+<!-- Progress bar: animates while page loads, completes on window load -->
+<div id="progress-bar" style="position:fixed;top:0;left:0;height:2px;background:#e94560;z-index:9999;transition:width 0.3s ease;width:0%;"></div>
+<script>
+(function() {
+  var bar = document.getElementById('progress-bar');
+  if (!bar) return;
+  var width = 0;
+  var interval = setInterval(function() {
+    width += Math.random() * 15;
+    if (width > 90) width = 90;
+    bar.style.width = width + '%';
+  }, 500);
+  window.addEventListener('load', function() {
+    clearInterval(interval);
+    bar.style.width = '100%';
+    setTimeout(function() { bar.style.opacity = '0'; }, 500);
+  });
+})();
+</script>
+
+{% if not report %}
+<!-- Skeleton loader: shown when report is not yet available -->
+<div id="skeleton-loader" style="max-width:720px; margin:0 auto; padding:24px 20px;">
+
+  <!-- Back link skeleton -->
+  <div class="skeleton" style="height:14px; width:140px; margin-bottom:24px;"></div>
+
+  <!-- Title skeleton -->
+  <div class="skeleton skeleton-title"></div>
+  <div style="display:flex; gap:8px; margin-bottom:24px;">
+    <div class="skeleton skeleton-badge"></div>
+    <div class="skeleton skeleton-badge" style="width:160px;"></div>
+  </div>
+
+  <!-- Mileage card skeleton -->
+  <div class="skeleton-card">
+    <div class="skeleton skeleton-label"></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+      <div class="skeleton" style="height:80px; border-radius:12px;"></div>
+      <div class="skeleton" style="height:80px; border-radius:12px;"></div>
+    </div>
+    <div class="skeleton" style="height:6px; border-radius:100px; margin-bottom:8px;"></div>
+    <div class="skeleton" style="height:40px; border-radius:10px; margin-top:12px;"></div>
+  </div>
+
+  <!-- Cost card skeleton -->
+  <div class="skeleton-card">
+    <div class="skeleton skeleton-label"></div>
+    {% for i in range(6) %}
+    <div class="skeleton-row">
+      <div class="skeleton skeleton-row-left"></div>
+      <div class="skeleton skeleton-row-right"></div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Problems card skeleton -->
+  <div class="skeleton-card">
+    <div class="skeleton skeleton-label"></div>
+    {% for i in range(3) %}
+    <div style="background:#111; border-radius:10px; padding:14px; margin-bottom:8px;">
+      <div class="skeleton" style="height:16px; width:50%; margin-bottom:8px;"></div>
+      <div class="skeleton skeleton-text"></div>
+      <div class="skeleton skeleton-text-short"></div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Verdict card skeleton -->
+  <div class="skeleton-card">
+    <div class="skeleton skeleton-label"></div>
+    <div class="skeleton skeleton-score"></div>
+    <div class="skeleton skeleton-text" style="margin:0 auto; width:80%;"></div>
+  </div>
+
+</div>
+
+{% else %}
 
 {% set r = report | default({}) %}
 
@@ -842,6 +975,8 @@
 </div>
 
 </div><!-- /720px wrapper -->
+
+{% endif %}
 
 <!-- Toast notification -->
 <div id="toast" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#111111;border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 20px;color:white;font-family:'Inter',sans-serif;font-size:13px;z-index:9999;white-space:nowrap;">Link copied!</div>
