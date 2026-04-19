@@ -749,7 +749,7 @@
 <div class="top-bar">
   <a href="/" class="back-link">&#8592; Search another car</a>
   <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;">
-    <h1 class="car-name" style="margin-bottom:0;">{{ r.car_name | default('Unknown Car') }}</h1>
+    <h1 class="car-name" style="margin-bottom:0;">{{ report.car_name | default('Unknown Car') }}</h1>
     <div style="display:flex;gap:8px;flex-shrink:0;margin-top:4px;">
       <button onclick="shareReport()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:6px 14px;color:rgba(255,255,255,0.7);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;">Share</button>
       <button onclick="shareWhatsApp()" style="background:#25D366;border:none;border-radius:8px;padding:8px 16px;color:white;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
@@ -762,11 +762,11 @@
     </div>
   </div>
   <div class="badge-row">
-    {% if r.segment %}<span class="pill-badge">{{ r.segment }}</span>{% endif %}
-    {% if r.price_range %}<span class="pill-badge">{{ r.price_range }}</span>{% endif %}
+    {% if report.segment %}<span class="pill-badge">{{ report.segment }}</span>{% endif %}
+    {% if report.price_range %}<span class="pill-badge">{{ report.price_range }}</span>{% endif %}
   </div>
   <div class="cache-status">
-    {% if r.from_cache %}
+    {% if report.from_cache %}
       <span class="cache-dot" style="background:#48bb78;"></span>
       <span style="color:#48bb78;">Data cached &#10003;</span>
     {% else %}
@@ -777,17 +777,17 @@
 </div>
 
 <!-- 2. Mileage card -->
-{% if r.mileage %}
+{% if report.mileage %}
 <div class="rcard">
   <div class="card-header">Real Mileage</div>
   <div class="mileage-row">
     <div class="mileage-cell">
       <div class="mileage-cell-label">Claimed</div>
-      <div class="mileage-claimed-value">{{ r.mileage.claimed | default('—') | truncate(30, true, '...') }}</div>
+      <div class="mileage-claimed-value">{{ report.mileage.claimed | default('—') | truncate(30, true, '...') }}</div>
     </div>
     <div class="mileage-cell">
       <div class="mileage-cell-label">Real World</div>
-      <div class="mileage-real-value">{{ r.mileage.real_world | default('—') }}</div>
+      <div class="mileage-real-value">{{ report.mileage.real_world | default('—') }}</div>
     </div>
   </div>
   <div style="margin-top:14px;">
@@ -799,59 +799,59 @@
       <span style="font-size:11px;color:rgba(255,255,255,0.35);">Claimed</span>
     </div>
   </div>
-  {% if r.mileage.difference %}
-  <div class="mileage-diff" style="margin-top:12px;">You get {{ r.mileage.difference }} less than claimed</div>
+  {% if report.mileage.difference %}
+  <div class="mileage-diff" style="margin-top:12px;">You get {{ report.mileage.difference }} less than claimed</div>
   {% endif %}
 </div>
 {% endif %}
 
 <!-- 3. True cost card -->
-{% if r.ownership_cost %}
+{% if report.ownership_cost %}
 <div class="rcard">
   <div class="card-header">What Owning This Car Actually Costs</div>
   <ul class="cost-list">
-    {% if r.ownership_cost.insurance_year1 %}
+    {% if report.ownership_cost.insurance_year1 %}
     <li class="cost-row">
       <span class="cost-label">Insurance (year 1)</span>
-      <span class="cost-value">{{ r.ownership_cost.insurance_year1 }}</span>
+      <span class="cost-value">{{ report.ownership_cost.insurance_year1 }}</span>
     </li>
     {% endif %}
-    {% if r.ownership_cost.service_10k %}
+    {% if report.ownership_cost.service_10k %}
     <li class="cost-row">
       <span class="cost-label">Service @ 10,000 km</span>
-      <span class="cost-value">{{ r.ownership_cost.service_10k }}</span>
+      <span class="cost-value">{{ report.ownership_cost.service_10k }}</span>
     </li>
     {% endif %}
-    {% if r.ownership_cost.service_20k %}
+    {% if report.ownership_cost.service_20k %}
     <li class="cost-row">
       <span class="cost-label">Service @ 20,000 km</span>
-      <span class="cost-value">{{ r.ownership_cost.service_20k }}</span>
+      <span class="cost-value">{{ report.ownership_cost.service_20k }}</span>
     </li>
     {% endif %}
-    {% if r.ownership_cost.service_40k %}
+    {% if report.ownership_cost.service_40k %}
     <li class="cost-row">
       <span class="cost-label">Service @ 40,000 km</span>
-      <span class="cost-value">{{ r.ownership_cost.service_40k }}</span>
+      <span class="cost-value">{{ report.ownership_cost.service_40k }}</span>
     </li>
     {% endif %}
-    {% if r.ownership_cost.tyre_replacement %}
+    {% if report.ownership_cost.tyre_replacement %}
     <li class="cost-row">
       <span class="cost-label">Tyre replacement (set of 4)</span>
-      <span class="cost-value">{{ r.ownership_cost.tyre_replacement }}</span>
+      <span class="cost-value">{{ report.ownership_cost.tyre_replacement }}</span>
     </li>
     {% endif %}
-    {% if r.ownership_cost.annual_maintenance %}
+    {% if report.ownership_cost.annual_maintenance %}
     <li class="cost-row">
       <span class="cost-label">Annual maintenance estimate</span>
-      <span class="cost-value">{{ r.ownership_cost.annual_maintenance }}</span>
+      <span class="cost-value">{{ report.ownership_cost.annual_maintenance }}</span>
     </li>
     {% endif %}
-    {% if r.ownership_cost.local_mechanic_savings %}
+    {% if report.ownership_cost.local_mechanic_savings %}
     <li class="cost-row savings">
       <span class="cost-label">
         <span class="savings-prefix">SAVE</span>Local mechanic savings
       </span>
-      <span class="cost-value">{{ r.ownership_cost.local_mechanic_savings }}</span>
+      <span class="cost-value">{{ report.ownership_cost.local_mechanic_savings }}</span>
     </li>
     {% endif %}
   </ul>
@@ -859,10 +859,10 @@
 {% endif %}
 
 <!-- 4. Common problems card -->
-{% if r.common_problems %}
+{% if report.common_problems %}
 <div class="rcard">
   <div class="card-header">5 Problems Real Owners Face</div>
-  {% for problem in r.common_problems %}
+  {% for problem in report.common_problems %}
   <div class="problem-item">
     <div class="problem-top">
       <div class="problem-name">{{ problem.name | default('Unknown issue') }}</div>
@@ -881,7 +881,7 @@
 {% endif %}
 
 <!-- 5. Before you buy card -->
-{% if r.checklist %}
+{% if report.checklist %}
 <div class="rcard">
   <div class="card-header">Before You Buy</div>
   <div class="tab-row">
@@ -890,7 +890,7 @@
   </div>
   <div class="tab-panel active" id="panel-new">
     <ul class="checklist">
-      {% for item in r.checklist.new_car | default([]) %}
+      {% for item in report.checklist.new_car | default([]) %}
       <li>
         <span class="check-icon"></span>
         <span>{{ item }}</span>
@@ -900,7 +900,7 @@
   </div>
   <div class="tab-panel" id="panel-used">
     <ul class="checklist">
-      {% for item in r.checklist.used_car | default([]) %}
+      {% for item in report.checklist.used_car | default([]) %}
       <li>
         <span class="check-icon"></span>
         <span>{{ item }}</span>
@@ -912,7 +912,7 @@
 {% endif %}
 
 <!-- 6. Emergency guide card -->
-{% if r.emergency %}
+{% if report.emergency %}
 <div class="emergency-card">
   <div class="card-header">Emergency Guide</div>
 
@@ -923,7 +923,7 @@
     </button>
     <div class="accordion-body">
       <ol class="accordion-steps">
-        {% for step in r.emergency.battery_dead | default([]) %}
+        {% for step in report.emergency.battery_dead | default([]) %}
         <li>{{ step }}</li>
         {% endfor %}
       </ol>
@@ -937,7 +937,7 @@
     </button>
     <div class="accordion-body">
       <ol class="accordion-steps">
-        {% for step in r.emergency.flat_tyre | default([]) %}
+        {% for step in report.emergency.flat_tyre | default([]) %}
         <li>{{ step }}</li>
         {% endfor %}
       </ol>
@@ -951,7 +951,7 @@
     </button>
     <div class="accordion-body">
       <ol class="accordion-steps">
-        {% for step in r.emergency.breakdown | default([]) %}
+        {% for step in report.emergency.breakdown | default([]) %}
         <li>{{ step }}</li>
         {% endfor %}
       </ol>
@@ -961,39 +961,39 @@
 {% endif %}
 
 <!-- 7. Honest verdict card -->
-{% if r.verdict %}
+{% if report.verdict %}
 <div class="verdict-card">
   <div class="card-header" style="color:#e94560;">CarTruth Verdict</div>
   <div class="verdict-rating-row">
-    <span class="verdict-number">{{ r.verdict.cartruth_rating | default('—') | string | replace('/10', '') | trim }}</span>
+    <span class="verdict-number">{{ report.verdict.cartruth_rating | default('—') | string | replace('/10', '') | trim }}</span>
     <span class="verdict-denom">/10</span>
   </div>
-  {% if r.verdict.honest_sentence %}
-  <p class="verdict-sentence">{{ r.verdict.honest_sentence }}</p>
+  {% if report.verdict.honest_sentence %}
+  <p class="verdict-sentence">{{ report.verdict.honest_sentence }}</p>
   {% endif %}
   <ul class="verdict-list">
-    {% if r.verdict.who_should_buy %}
+    {% if report.verdict.who_should_buy %}
     <li class="verdict-row buy">
       <span class="verdict-icon buy"></span>
-      <span><span class="verdict-row-label">Buy if</span><span class="verdict-row-text">{{ r.verdict.who_should_buy }}</span></span>
+      <span><span class="verdict-row-label">Buy if</span><span class="verdict-row-text">{{ report.verdict.who_should_buy }}</span></span>
     </li>
     {% endif %}
-    {% if r.verdict.who_should_avoid %}
+    {% if report.verdict.who_should_avoid %}
     <li class="verdict-row avoid">
       <span class="verdict-icon avoid"></span>
-      <span><span class="verdict-row-label">Avoid if</span><span class="verdict-row-text">{{ r.verdict.who_should_avoid }}</span></span>
+      <span><span class="verdict-row-label">Avoid if</span><span class="verdict-row-text">{{ report.verdict.who_should_avoid }}</span></span>
     </li>
     {% endif %}
-    {% if r.verdict.hidden_strengths %}
+    {% if report.verdict.hidden_strengths %}
     <li class="verdict-row plus">
       <span class="verdict-icon plus"></span>
-      <span><span class="verdict-row-label">Strength</span><span class="verdict-row-text">{{ r.verdict.hidden_strengths }}</span></span>
+      <span><span class="verdict-row-label">Strength</span><span class="verdict-row-text">{{ report.verdict.hidden_strengths }}</span></span>
     </li>
     {% endif %}
-    {% if r.verdict.hidden_weaknesses %}
+    {% if report.verdict.hidden_weaknesses %}
     <li class="verdict-row minus">
       <span class="verdict-icon minus"></span>
-      <span><span class="verdict-row-label">Weakness</span><span class="verdict-row-text">{{ r.verdict.hidden_weaknesses }}</span></span>
+      <span><span class="verdict-row-label">Weakness</span><span class="verdict-row-text">{{ report.verdict.hidden_weaknesses }}</span></span>
     </li>
     {% endif %}
   </ul>
@@ -1012,46 +1012,46 @@
   </div>
 
   <!-- Car name -->
-  <h2 style="font-size:24px;font-weight:800;margin:0 0 4px;letter-spacing:-0.5px;">{{ r.car_name | default(car_model) }}</h2>
-  <p style="font-size:13px;color:rgba(255,255,255,0.4);margin:0 0 20px;">{{ r.segment | default('') }}{% if r.segment and r.price_range %} • {% endif %}{{ r.price_range | default('') }}</p>
+  <h2 style="font-size:24px;font-weight:800;margin:0 0 4px;letter-spacing:-0.5px;">{{ report.car_name | default(car_model) }}</h2>
+  <p style="font-size:13px;color:rgba(255,255,255,0.4);margin:0 0 20px;">{{ report.segment | default('') }}{% if report.segment and report.price_range %} • {% endif %}{{ report.price_range | default('') }}</p>
 
   <!-- Key stats grid -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
     <div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:12px;padding:14px;">
       <p style="font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,0.3);margin:0 0 6px;text-transform:uppercase;">Real Mileage</p>
-      <p style="font-size:15px;font-weight:700;margin:0;color:white;">{{ r.mileage.real_world | default('N/A') }}</p>
+      <p style="font-size:15px;font-weight:700;margin:0;color:white;">{{ report.mileage.real_world | default('N/A') }}</p>
     </div>
     <div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:12px;padding:14px;">
       <p style="font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,0.3);margin:0 0 6px;text-transform:uppercase;">Annual Cost</p>
-      <p style="font-size:15px;font-weight:700;margin:0;color:white;">{{ r.ownership_cost.annual_maintenance | default('N/A') }}</p>
+      <p style="font-size:15px;font-weight:700;margin:0;color:white;">{{ report.ownership_cost.annual_maintenance | default('N/A') }}</p>
     </div>
     <div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:12px;padding:14px;">
       <p style="font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,0.3);margin:0 0 6px;text-transform:uppercase;">Insurance Y1</p>
-      <p style="font-size:15px;font-weight:700;margin:0;color:white;">{{ r.ownership_cost.insurance_year1 | default('N/A') }}</p>
+      <p style="font-size:15px;font-weight:700;margin:0;color:white;">{{ report.ownership_cost.insurance_year1 | default('N/A') }}</p>
     </div>
     <div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:12px;padding:14px;">
       <p style="font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,0.3);margin:0 0 6px;text-transform:uppercase;">CarTruth Score</p>
       <p style="font-size:22px;font-weight:800;margin:0;color:#e94560;">
-        {% if r.verdict and r.verdict.cartruth_rating %}
-          {{ r.verdict.cartruth_rating | string | replace('/10', '') | trim | truncate(3, false, '') }}<span style="font-size:13px;color:rgba(255,255,255,0.4)">/10</span>
+        {% if report.verdict and report.verdict.cartruth_rating %}
+          {{ report.verdict.cartruth_rating | string | replace('/10', '') | trim | truncate(3, false, '') }}<span style="font-size:13px;color:rgba(255,255,255,0.4)">/10</span>
         {% else %}N/A{% endif %}
       </p>
     </div>
   </div>
 
   <!-- Who should buy -->
-  {% if r.verdict and r.verdict.who_should_buy %}
+  {% if report.verdict and report.verdict.who_should_buy %}
   <div style="background:rgba(72,187,120,0.08);border:1px solid rgba(72,187,120,0.2);border-radius:12px;padding:14px;margin-bottom:12px;">
     <p style="font-size:10px;letter-spacing:1.5px;color:#48bb78;margin:0 0 6px;text-transform:uppercase;font-weight:600;">✓ Best For</p>
-    <p style="font-size:13px;color:rgba(255,255,255,0.8);margin:0;line-height:1.5;">{{ r.verdict.who_should_buy | truncate(100) }}</p>
+    <p style="font-size:13px;color:rgba(255,255,255,0.8);margin:0;line-height:1.5;">{{ report.verdict.who_should_buy | truncate(100) }}</p>
   </div>
   {% endif %}
 
   <!-- Who should avoid -->
-  {% if r.verdict and r.verdict.who_should_avoid %}
+  {% if report.verdict and report.verdict.who_should_avoid %}
   <div style="background:rgba(233,69,96,0.08);border:1px solid rgba(233,69,96,0.2);border-radius:12px;padding:14px;margin-bottom:20px;">
     <p style="font-size:10px;letter-spacing:1.5px;color:#e94560;margin:0 0 6px;text-transform:uppercase;font-weight:600;">✗ Avoid If</p>
-    <p style="font-size:13px;color:rgba(255,255,255,0.8);margin:0;line-height:1.5;">{{ r.verdict.who_should_avoid | truncate(100) }}</p>
+    <p style="font-size:13px;color:rgba(255,255,255,0.8);margin:0;line-height:1.5;">{{ report.verdict.who_should_avoid | truncate(100) }}</p>
   </div>
   {% endif %}
 
@@ -1099,10 +1099,10 @@
   function shareWhatsApp() {
     const carName    = '{{ car_model }}';
     const rating     = document.querySelector('.verdict-number')?.textContent?.trim() || '';
-    const segment    = '{{ r.segment | default("") }}';
-    const priceRange = '{{ r.price_range | default("") }}';
-    const realMileage = '{{ r.mileage.real_world | default("") }}';
-    const annualCost  = '{{ r.ownership_cost.annual_maintenance | default("") }}';
+    const segment    = '{{ report.segment | default("") }}';
+    const priceRange = '{{ report.price_range | default("") }}';
+    const realMileage = '{{ report.mileage.real_world | default("") }}';
+    const annualCost  = '{{ report.ownership_cost.annual_maintenance | default("") }}';
 
     const message = `🚗 *CarTruth Report: ${carName}*
 
