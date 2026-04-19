@@ -750,7 +750,16 @@
   <a href="/" class="back-link">&#8592; Search another car</a>
   <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;">
     <h1 class="car-name" style="margin-bottom:0;">{{ r.car_name | default('Unknown Car') }}</h1>
-    <button onclick="shareReport()" style="flex-shrink:0;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:6px 14px;color:rgba(255,255,255,0.7);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;margin-top:4px;">Share</button>
+    <div style="display:flex;gap:8px;flex-shrink:0;margin-top:4px;">
+      <button onclick="shareReport()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:6px 14px;color:rgba(255,255,255,0.7);font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;">Share</button>
+      <button onclick="shareWhatsApp()" style="background:#25D366;border:none;border-radius:8px;padding:8px 16px;color:white;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.134.558 4.133 1.528 5.871L.057 23.882l6.162-1.448A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.894a9.877 9.877 0 01-5.031-1.378l-.361-.214-3.741.98.999-3.648-.235-.374A9.861 9.861 0 012.106 12C2.106 6.579 6.579 2.106 12 2.106c5.42 0 9.894 4.473 9.894 9.894 0 5.42-4.474 9.894-9.894 9.894z"/>
+        </svg>
+        WhatsApp
+      </button>
+    </div>
   </div>
   <div class="badge-row">
     {% if r.segment %}<span class="pill-badge">{{ r.segment }}</span>{% endif %}
@@ -991,7 +1000,69 @@
 </div>
 {% endif %}
 
-<!-- 8. Bottom -->
+<!-- 8. Report card (shareable screenshot card) -->
+<div id="report-card" style="background:linear-gradient(135deg,#0a0a0a 0%,#111111 100%);border:1px solid #222222;border-radius:20px;padding:28px 24px;margin-top:16px;position:relative;overflow:hidden;">
+  <!-- Red accent top border -->
+  <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#e94560,transparent);"></div>
+
+  <!-- Header row -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <span style="font-size:13px;font-weight:700;color:#e94560;letter-spacing:1px;">CARTRUTH REPORT</span>
+    <span style="font-size:11px;color:rgba(255,255,255,0.3);">thecartruth.in</span>
+  </div>
+
+  <!-- Car name -->
+  <h2 style="font-size:24px;font-weight:800;margin:0 0 4px;letter-spacing:-0.5px;">{{ r.car_name | default(car_model) }}</h2>
+  <p style="font-size:13px;color:rgba(255,255,255,0.4);margin:0 0 20px;">{{ r.segment | default('') }}{% if r.segment and r.price_range %} • {% endif %}{{ r.price_range | default('') }}</p>
+
+  <!-- Key stats grid -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+    <div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:12px;padding:14px;">
+      <p style="font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,0.3);margin:0 0 6px;text-transform:uppercase;">Real Mileage</p>
+      <p style="font-size:15px;font-weight:700;margin:0;color:white;">{{ r.mileage.real_world | default('N/A') }}</p>
+    </div>
+    <div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:12px;padding:14px;">
+      <p style="font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,0.3);margin:0 0 6px;text-transform:uppercase;">Annual Cost</p>
+      <p style="font-size:15px;font-weight:700;margin:0;color:white;">{{ r.ownership_cost.annual_maintenance | default('N/A') }}</p>
+    </div>
+    <div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:12px;padding:14px;">
+      <p style="font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,0.3);margin:0 0 6px;text-transform:uppercase;">Insurance Y1</p>
+      <p style="font-size:15px;font-weight:700;margin:0;color:white;">{{ r.ownership_cost.insurance_year1 | default('N/A') }}</p>
+    </div>
+    <div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:12px;padding:14px;">
+      <p style="font-size:10px;letter-spacing:1.5px;color:rgba(255,255,255,0.3);margin:0 0 6px;text-transform:uppercase;">CarTruth Score</p>
+      <p style="font-size:22px;font-weight:800;margin:0;color:#e94560;">
+        {% if r.verdict and r.verdict.cartruth_rating %}
+          {{ r.verdict.cartruth_rating | string | replace('/10', '') | trim | truncate(3, false, '') }}<span style="font-size:13px;color:rgba(255,255,255,0.4)">/10</span>
+        {% else %}N/A{% endif %}
+      </p>
+    </div>
+  </div>
+
+  <!-- Who should buy -->
+  {% if r.verdict and r.verdict.who_should_buy %}
+  <div style="background:rgba(72,187,120,0.08);border:1px solid rgba(72,187,120,0.2);border-radius:12px;padding:14px;margin-bottom:12px;">
+    <p style="font-size:10px;letter-spacing:1.5px;color:#48bb78;margin:0 0 6px;text-transform:uppercase;font-weight:600;">✓ Best For</p>
+    <p style="font-size:13px;color:rgba(255,255,255,0.8);margin:0;line-height:1.5;">{{ r.verdict.who_should_buy | truncate(100) }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Who should avoid -->
+  {% if r.verdict and r.verdict.who_should_avoid %}
+  <div style="background:rgba(233,69,96,0.08);border:1px solid rgba(233,69,96,0.2);border-radius:12px;padding:14px;margin-bottom:20px;">
+    <p style="font-size:10px;letter-spacing:1.5px;color:#e94560;margin:0 0 6px;text-transform:uppercase;font-weight:600;">✗ Avoid If</p>
+    <p style="font-size:13px;color:rgba(255,255,255,0.8);margin:0;line-height:1.5;">{{ r.verdict.who_should_avoid | truncate(100) }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Share row -->
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <p style="font-size:11px;color:rgba(255,255,255,0.25);margin:0;">Screenshot &amp; share this card</p>
+    <button onclick="shareWhatsApp()" style="background:#25D366;border:none;border-radius:8px;padding:8px 16px;color:white;font-size:12px;font-weight:600;cursor:pointer;">Share on WhatsApp →</button>
+  </div>
+</div>
+
+<!-- 9. Bottom -->
 <div class="bottom-bar">
   <a href="/" class="back-link">&#8592; Search another car</a>
   <p class="footer-note">Data generated by AI. Always verify with a certified mechanic before purchasing.</p>
@@ -1024,6 +1095,34 @@
 
 {% block extra_scripts %}
 <script>
+  // ── WhatsApp Share ─────────────────────────────────────────────────────────
+  function shareWhatsApp() {
+    const carName    = '{{ car_model }}';
+    const rating     = document.querySelector('.verdict-number')?.textContent?.trim() || '';
+    const segment    = '{{ r.segment | default("") }}';
+    const priceRange = '{{ r.price_range | default("") }}';
+    const realMileage = '{{ r.mileage.real_world | default("") }}';
+    const annualCost  = '{{ r.ownership_cost.annual_maintenance | default("") }}';
+
+    const message = `🚗 *CarTruth Report: ${carName}*
+
+⭐ CarTruth Rating: *${rating}/10*
+📦 Segment: ${segment}
+💰 Price: ${priceRange}
+
+📊 *Real Facts:*
+⛽ Actual mileage: ${realMileage}
+🔧 Annual maintenance: ${annualCost}
+
+✅ Get the full honest report (mileage, service costs, common problems, verdict) here:
+${window.location.href}
+
+_CarTruth — India's honest car guide. Not the showroom pitch._`;
+
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  }
+
   // ── Share & Toast ──────────────────────────────────────────────────────────
   function shareReport() {
     if (navigator.share) {
