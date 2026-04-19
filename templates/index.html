@@ -719,7 +719,9 @@
 
   function goToReport(carName) {
     closeDropdown();
-    document.getElementById('loading-overlay').style.display = 'flex';
+    const overlay = document.getElementById('loading-overlay');
+    overlay.style.display = 'flex';
+    setTimeout(() => { if (overlay) overlay.style.display = 'none'; }, 30000);
     window.location.href = '/report/' + slugify(carName);
   }
 
@@ -915,7 +917,10 @@
     document.querySelectorAll('#recent-chips a').forEach(link => {
       link.addEventListener('click', () => {
         const overlay = document.getElementById('loading-overlay');
-        if (overlay) overlay.style.display = 'flex';
+        if (overlay) {
+          overlay.style.display = 'flex';
+          setTimeout(() => { overlay.style.display = 'none'; }, 30000);
+        }
       });
     });
   }

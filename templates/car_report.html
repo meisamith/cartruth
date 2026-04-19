@@ -1042,7 +1042,7 @@
   <!-- Who should buy -->
   {% if report.verdict and report.verdict.who_should_buy %}
   <div style="background:rgba(72,187,120,0.08);border:1px solid rgba(72,187,120,0.2);border-radius:12px;padding:14px;margin-bottom:12px;">
-    <p style="font-size:10px;letter-spacing:1.5px;color:#48bb78;margin:0 0 6px;text-transform:uppercase;font-weight:600;">✓ Best For</p>
+    <p style="font-size:10px;letter-spacing:1.5px;color:#48bb78;margin:0 0 6px;text-transform:uppercase;font-weight:600;">BEST FOR</p>
     <p style="font-size:13px;color:rgba(255,255,255,0.8);margin:0;line-height:1.5;">{{ report.verdict.who_should_buy | truncate(100) }}</p>
   </div>
   {% endif %}
@@ -1050,7 +1050,7 @@
   <!-- Who should avoid -->
   {% if report.verdict and report.verdict.who_should_avoid %}
   <div style="background:rgba(233,69,96,0.08);border:1px solid rgba(233,69,96,0.2);border-radius:12px;padding:14px;margin-bottom:20px;">
-    <p style="font-size:10px;letter-spacing:1.5px;color:#e94560;margin:0 0 6px;text-transform:uppercase;font-weight:600;">✗ Avoid If</p>
+    <p style="font-size:10px;letter-spacing:1.5px;color:#e94560;margin:0 0 6px;text-transform:uppercase;font-weight:600;">AVOID IF</p>
     <p style="font-size:13px;color:rgba(255,255,255,0.8);margin:0;line-height:1.5;">{{ report.verdict.who_should_avoid | truncate(100) }}</p>
   </div>
   {% endif %}
@@ -1097,30 +1097,30 @@
 <script>
   // ── WhatsApp Share ─────────────────────────────────────────────────────────
   function shareWhatsApp() {
-    const carName    = '{{ car_model }}';
-    const rating     = document.querySelector('.verdict-number')?.textContent?.trim() || '';
-    const segment    = '{{ report.segment | default("") }}';
-    const priceRange = '{{ report.price_range | default("") }}';
+    const carName = document.querySelector('h1')?.textContent?.trim() || '{{ car_model }}';
+    const rating = document.querySelector('.verdict-number')?.textContent?.trim() || '';
     const realMileage = '{{ report.mileage.real_world | default("") }}';
-    const annualCost  = '{{ report.ownership_cost.annual_maintenance | default("") }}';
+    const annualCost = '{{ report.ownership_cost.annual_maintenance | default("") }}';
+    const whoShouldBuy = '{{ report.verdict.who_should_buy | default("") | truncate(80) }}';
+    const whoShouldAvoid = '{{ report.verdict.who_should_avoid | default("") | truncate(80) }}';
 
-    const message = `🚗 *CarTruth Report: ${carName}*
+    const message = `CarTruth Report — ${carName}
 
-⭐ CarTruth Rating: *${rating}/10*
-📦 Segment: ${segment}
-💰 Price: ${priceRange}
+Rating: ${rating}/10
 
-📊 *Real Facts:*
-⛽ Actual mileage: ${realMileage}
-🔧 Annual maintenance: ${annualCost}
+Real mileage: ${realMileage}
+Annual maintenance: ${annualCost}
 
-✅ Get the full honest report (mileage, service costs, common problems, verdict) here:
-${window.location.href}
+Best for: ${whoShouldBuy}
 
-_CarTruth — India's honest car guide. Not the showroom pitch._`;
+Not ideal for: ${whoShouldAvoid}
 
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
+Full report: ${window.location.href}
+
+CarTruth — India's honest car guide.`;
+
+    const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
   }
 
   // ── Share & Toast ──────────────────────────────────────────────────────────
