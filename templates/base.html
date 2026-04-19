@@ -130,6 +130,18 @@
         document.body.style.transition = 'opacity 0.15s ease';
       }
     });
+
+    // Hide loading overlay when navigating back/forward (bfcache restore)
+    window.addEventListener('pageshow', function(event) {
+      const overlay = document.getElementById('loading-overlay');
+      if (overlay) overlay.style.display = 'none';
+    });
+
+    // Hide loading overlay on popstate (back/forward button)
+    window.addEventListener('popstate', function() {
+      const overlay = document.getElementById('loading-overlay');
+      if (overlay) overlay.style.display = 'none';
+    });
   </script>
   {% block extra_scripts %}{% endblock %}
 
