@@ -659,8 +659,8 @@
 })();
 </script>
 
-{% if not report %}
-<!-- Skeleton loader: shown when report is not yet available -->
+{% if skeleton %}
+<!-- Skeleton loader: shown while report is being fetched in the background -->
 <div id="skeleton-loader" style="max-width:720px; margin:0 auto; padding:24px 20px;">
 
   <!-- Back link skeleton -->
@@ -715,6 +715,29 @@
   </div>
 
 </div>
+
+<script>
+(async function fetchReport() {
+  try {
+    const slug = '{{ car_model | lower | replace(" ", "-") }}';
+    const response = await fetch('/api/report/' + slug);
+    const data = await response.json();
+    if (data.success) {
+      // Report is now cached — reload and it will render instantly
+      window.location.reload();
+    } else {
+      document.getElementById('skeleton-loader').innerHTML =
+        '<div style="text-align:center;padding:60px 20px;color:#e94560;font-family:Inter,sans-serif;">' +
+        'Failed to generate report. Please <a href="/" style="color:#e94560;">try again</a>.</div>';
+    }
+  } catch (e) {
+    console.error('fetchReport error:', e);
+    document.getElementById('skeleton-loader').innerHTML =
+      '<div style="text-align:center;padding:60px 20px;color:#e94560;font-family:Inter,sans-serif;">' +
+      'Something went wrong. Please <a href="/" style="color:#e94560;">try again</a>.</div>';
+  }
+})();
+</script>
 
 {% else %}
 

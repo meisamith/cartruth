@@ -225,32 +225,23 @@ def index():
 @app.route("/report/<car_model>")
 def car_report(car_model):
     car_name = car_model.replace("-", " ").title()
+    cached = get_cached_report(car_model)
 
-    # 1. Cache lookup
-    report = get_cached_report(car_model)
-    if report:
+    if cached:
         print(f"[CACHE HIT] {car_model}")
-        report["from_cache"] = True
-        return render_template("car_report.html", report=report)
-
-    # 2. Generate via Claude
-    try:
-        print(f"[GENERATING] {car_name} via Claude...")
-        report = generate_report(car_name)
-        save_to_cache(car_model, report)
-        report["from_cache"] = False
-
-    except json.JSONDecodeError as e:
-        print("ERROR (JSON parse):", e)
-        traceback.print_exc()
-        report = {"car_name": car_name, "error": "Could not parse AI response. Please try again."}
-
-    except Exception as e:
-        print("ERROR:", e)
-        traceback.print_exc()
-        report = {"car_name": car_name, "error": str(e)}
-
-    return render_template("car_report.html", report=report)
+        cached["from_cache"] = True
+        return render_template("car_report.html",
+                               report=cached,
+                               car_model=car_name,
+                               from_cache=True,
+                               skeleton=False)
+    else:
+        # Show skeleton immediately; JS will fetch via API then reload
+        return render_template("car_report.html",
+                               report=None,
+                               car_model=car_name,
+                               from_cache=False,
+                               skeleton=True)
 
 
 @app.route("/compare")
@@ -278,6 +269,23 @@ def api_search():
 @app.post("/api/report")
 def api_report():
     return "coming soon"
+
+
+@app.get("/api/report/<car_model>")
+def api_report_get(car_model):
+    try:
+        car_name = car_model.replace("-", " ").title()
+        cached = get_cached_report(car_model)
+        if cached:
+            return jsonify({"success": True, "report": cached, "from_cache": True})
+        print(f"[API GENERATING] {car_name} via Claude...")
+        report = generate_report(car_name)
+        save_to_cache(car_model, report)
+        return jsonify({"success": True, "report": report, "from_cache": False})
+    except Exception as e:
+        print("ERROR (api_report_get):", e)
+        traceback.print_exc()
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.post("/api/compare")
