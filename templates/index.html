@@ -532,6 +532,15 @@
     <div class="ac-dropdown" id="acDropdown" role="listbox"></div>
   </form>
 
+  <!-- Recently Viewed -->
+  <div id="recent-section" style="display:none; margin-bottom:16px; max-width:600px; width:100%;">
+    <p style="font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:rgba(255,255,255,0.3); margin-bottom:10px; text-align:center;">Recently viewed</p>
+    <div id="recent-chips" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;"></div>
+    <div style="text-align:center; margin-top:8px;">
+      <button onclick="clearHistory()" style="background:none; border:none; color:rgba(255,255,255,0.2); font-size:11px; cursor:pointer; font-family:'Inter',sans-serif; text-decoration:underline;">Clear history</button>
+    </div>
+  </div>
+
   <div class="chips-wrap">
     <button class="chip" onclick="goToReport('Maruti Swift')">Maruti Swift</button>
     <button class="chip" onclick="goToReport('Hyundai Creta')">Hyundai Creta</button>
@@ -871,6 +880,52 @@
   document.getElementById('install-close').addEventListener('click', () => {
     document.getElementById('install-banner').style.display = 'none';
   });
+
+  // ── Search history ─────────────────────────────────────────────────────────
+  function loadHistory() {
+    const history = JSON.parse(localStorage.getItem('cartruth_history') || '[]');
+    if (history.length === 0) return;
+
+    const section = document.getElementById('recent-section');
+    const chipsContainer = document.getElementById('recent-chips');
+
+    section.style.display = 'block';
+
+    chipsContainer.innerHTML = history.map(item => `
+      <a href="/report/${item.model}" style="
+        padding: 7px 14px;
+        background: rgba(233,69,96,0.08);
+        border: 1px solid rgba(233,69,96,0.2);
+        border-radius: 100px;
+        font-size: 13px;
+        color: rgba(255,255,255,0.8);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 0.2s;
+      " onmouseover="this.style.background='rgba(233,69,96,0.15)'"
+         onmouseout="this.style.background='rgba(233,69,96,0.08)'">
+        <span style="color:#e94560; font-size:10px;">&#9679;</span>
+        ${item.name}
+      </a>
+    `).join('');
+
+    // Part 4: show loading overlay when a history chip is clicked
+    document.querySelectorAll('#recent-chips a').forEach(link => {
+      link.addEventListener('click', () => {
+        const overlay = document.getElementById('loading-overlay');
+        if (overlay) overlay.style.display = 'flex';
+      });
+    });
+  }
+
+  function clearHistory() {
+    localStorage.removeItem('cartruth_history');
+    document.getElementById('recent-section').style.display = 'none';
+  }
+
+  loadHistory();
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>

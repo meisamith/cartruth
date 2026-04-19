@@ -999,6 +999,17 @@
 
 </div><!-- /720px wrapper -->
 
+<script>
+(function() {
+  var carName  = '{{ car_model }}';
+  var carModel = '{{ car_model | lower | replace(" ", "-") }}';
+  var history  = JSON.parse(localStorage.getItem('cartruth_history') || '[]');
+  var filtered = history.filter(function(item) { return item.model !== carModel; });
+  filtered.unshift({ name: carName, model: carModel, timestamp: Date.now() });
+  localStorage.setItem('cartruth_history', JSON.stringify(filtered.slice(0, 5)));
+})();
+</script>
+
 {% endif %}
 
 <!-- Toast notification -->
