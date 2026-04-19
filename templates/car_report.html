@@ -1096,6 +1096,7 @@
 {% block extra_scripts %}
 <script>
   // ── WhatsApp Share ─────────────────────────────────────────────────────────
+  {% if report %}
   function shareWhatsApp() {
     const carName = document.querySelector('h1')?.textContent?.trim() || '{{ car_model }}';
     const rating = document.querySelector('.verdict-number')?.textContent?.trim() || '';
@@ -1122,6 +1123,9 @@ CarTruth — India's honest car guide.`;
     const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   }
+  {% else %}
+  function shareWhatsApp() {}
+  {% endif %}
 
   // ── Share & Toast ──────────────────────────────────────────────────────────
   function shareReport() {
