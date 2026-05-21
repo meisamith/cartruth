@@ -197,9 +197,6 @@ cartruth/
 **Amith Choudhary**
 2nd Year CSBS @ JSS Science and Technology University, Mysore
 
-- GitHub: [@meisamith](https://github.com/meisamith)
-- Project: Built end-to-end using Claude Code in 7 days
-
 ---
 
 ## 📄 License
