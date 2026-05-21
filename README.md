@@ -100,13 +100,6 @@ Next user searches "Maruti Swift" → Cache hit → Instant, free
 
 ---
 
-## 📸 Screenshots
-
-| Home Page | Car Report | Compare Mode |
-|-----------|-----------|--------------|
-| Dark theme, gold accents, search bar with autocomplete | 7-section detailed report with severity badges | Side-by-side comparison with personalised winner |
-
----
 
 ## 🚀 Run Locally
 
@@ -181,14 +174,6 @@ cartruth/
 
 ---
 
-## 🗺️ Roadmap
-
-- [ ] WhatsApp share card — share any car report as a rich preview link
-- [ ] Regional language support — Hindi, Kannada, Tamil, Telugu
-- [ ] User-submitted real mileage data — crowdsourced accuracy
-- [ ] Dealer price negotiation tips per model
-- [ ] Insurance comparison calculator
-- [ ] EMI vs cash analysis
 
 ---
 
